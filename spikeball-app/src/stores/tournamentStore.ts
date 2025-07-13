@@ -8,6 +8,7 @@ import type {
   PlayerStats,
 } from '../types';
 import { calculateGroups } from '../algorithms/groupCalculation';
+import { generateRound } from '../algorithms/pairingAlgorithm';
 
 interface TournamentStore {
   // State
@@ -132,9 +133,26 @@ const useTournamentStore = create<TournamentStore>()(
       },
 
       generateRound: () => {
-        // TODO: Implement round generation using pairing algorithm
-        // This will be implemented in Phase 3
-        console.log('Generate round - to be implemented');
+        const state = get();
+        if (!state.currentTournament || !state.currentTournament.isStarted) {
+          return;
+        }
+
+        const players = Object.values(state.currentTournament.players);
+        const roundNumber = state.currentTournament.currentRound;
+        
+        const result = generateRound(players, roundNumber);
+        
+        if (result.success) {
+          set({
+            currentTournament: {
+              ...state.currentTournament,
+              rounds: [...state.currentTournament.rounds, result.round],
+            },
+          });
+        } else {
+          console.error('Failed to generate round:', result.errors);
+        }
       },
 
       updateMatchScore: (matchId, team1Score, team2Score) => {
