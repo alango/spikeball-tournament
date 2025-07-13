@@ -45,10 +45,27 @@ The grouping algorithm calculates optimal group sizes using the formula `2A + 3B
 1. Total points
 2. Strength of schedule (average of opponents' current ratings)
 
+## Technology Stack
+
+- **Frontend**: React 18+ with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **Persistence**: localStorage (client-only, no backend)
+- **Architecture**: Single-page application running entirely in browser
+
+## Key Design Decisions
+
+- **Client-Only**: No server required, runs entirely in browser
+- **State Persistence**: localStorage with automatic save/restore on refresh
+- **Single Tournament**: Creating new tournament erases previous state
+- **Responsive Design**: Three-column desktop layout, collapsible mobile design
+- **Component Structure**: TournamentSetup → TournamentDashboard with Leaderboard, PreviousRounds, CurrentRound
+
 ## Development Notes
 
-This project is in specification phase - no implementation code exists yet. When implementing:
 - Focus on simplicity over comprehensive features
-- Single-screen design with three main columns
-- Web application targeting tournament organizers only
-- The pairing algorithm is the core complexity that needs careful implementation
+- The pairing algorithm (`src/algorithms/pairingAlgorithm.ts`) is the core complexity
+- Comprehensive TypeScript types for all data models
+- Memoization for expensive pairing calculations
+- Component memoization with React.memo for performance
