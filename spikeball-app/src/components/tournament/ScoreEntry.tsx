@@ -150,7 +150,6 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
             <div className="text-sm font-medium text-gray-900">
               {team1Players.player1?.name || 'Unknown'} & {team1Players.player2?.name || 'Unknown'}
             </div>
-            <div className="text-xs text-gray-500">Team 1</div>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-20">
@@ -180,7 +179,6 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
             <div className="text-sm font-medium text-gray-900">
               {team2Players.player1?.name || 'Unknown'} & {team2Players.player2?.name || 'Unknown'}
             </div>
-            <div className="text-xs text-gray-500">Team 2</div>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-20">
