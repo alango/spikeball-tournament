@@ -1,9 +1,20 @@
 import useTournamentStore from './stores/tournamentStore';
 import { TournamentSetup } from './components/tournament/TournamentSetup';
 import { TournamentDashboard } from './components/tournament/TournamentDashboard';
+import { Button } from './components/ui';
 
 function App() {
-  const { currentTournament } = useTournamentStore();
+  const { currentTournament, resetTournament } = useTournamentStore();
+
+  const handleNewTournament = () => {
+    if (currentTournament) {
+      if (confirm('Are you sure you want to start a new tournament? This will reset all current data.')) {
+        resetTournament();
+      }
+    } else {
+      resetTournament();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -13,11 +24,20 @@ function App() {
             <h1 className="text-2xl font-bold text-gray-900">
               Spikeball Tournament
             </h1>
-            {currentTournament && (
-              <div className="text-sm text-gray-600">
-                {currentTournament.name}
-              </div>
-            )}
+            <div className="flex items-center space-x-4">
+              {currentTournament && (
+                <div className="text-sm text-gray-600">
+                  {currentTournament.name}
+                </div>
+              )}
+              <Button 
+                onClick={handleNewTournament}
+                variant="secondary"
+                size="sm"
+              >
+                New Tournament
+              </Button>
+            </div>
           </div>
         </div>
       </header>
