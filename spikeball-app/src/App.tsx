@@ -1,5 +1,6 @@
 import useTournamentStore from './stores/tournamentStore';
 import { TournamentSetup } from './components/tournament/TournamentSetup';
+import { TournamentDashboard } from './components/tournament/TournamentDashboard';
 
 function App() {
   const { currentTournament } = useTournamentStore();
@@ -33,32 +34,5 @@ function App() {
 }
 
 // Placeholder components - will be implemented in later phases
-
-function TournamentDashboard() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Leaderboard</h2>
-        <p className="text-gray-600">
-          Leaderboard will be implemented in Phase 4
-        </p>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Previous Rounds</h2>
-        <p className="text-gray-600">
-          Previous rounds will be implemented in Phase 6
-        </p>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Current Round</h2>
-        <p className="text-gray-600">
-          Current round will be implemented in Phase 4
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default App;
