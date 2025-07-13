@@ -242,7 +242,10 @@ function MatchHistory({ match, matchNumber, tournament }: MatchHistoryProps) {
        match.team1Score !== undefined && match.team2Score !== undefined && (
         <div className="mt-2 pt-2 border-t border-gray-200">
           <div className="text-xs text-gray-600 text-center">
-            Points earned: {calculateMatchPoints(match.team1Score, match.team2Score, team1Won, tournament.configuration).toFixed(1)} - {calculateMatchPoints(match.team2Score, match.team1Score, team2Won, tournament.configuration).toFixed(1)}
+            Points earned: {(() => {
+              const points = calculateMatchPoints(match.team1Score, match.team2Score, tournament.configuration);
+              return `${points.team1Points.toFixed(1)} - ${points.team2Points.toFixed(1)}`;
+            })()}
           </div>
         </div>
       )}
@@ -251,16 +254,42 @@ function MatchHistory({ match, matchNumber, tournament }: MatchHistoryProps) {
 }
 
 // Helper function to calculate points (same logic as in store)
-function calculateMatchPoints(score: number, opponentScore: number, won: boolean, config: any) {
+function calculateMatchPoints(team1Score: number, team2Score: number, config: any) {
   if (config.scoringSystem === 'win-loss') {
-    return won ? 3 : 0;
+    const team1Won = team1Score > team2Score;
+    return {
+      team1Points: team1Won ? 3 : 0,
+      team2Points: team1Won ? 0 : 3
+    };
   } else if (config.bonusPointsEnabled) {
-    const basePoints = won ? 3 : 0;
-    const totalGameScore = score + opponentScore;
-    const percentage = totalGameScore > 0 ? (score / totalGameScore) : 0;
-    const bonusPoints = percentage * 2;
-    return basePoints + bonusPoints;
+    const team1Won = team1Score > team2Score;
+    const team1BasePoints = team1Won ? 3 : 0;
+    const team2BasePoints = team1Won ? 0 : 3;
+    
+    const totalGameScore = team1Score + team2Score;
+    if (totalGameScore > 0) {
+      const team1Percentage = team1Score / totalGameScore;
+      const team2Percentage = team2Score / totalGameScore;
+      
+      // 1 total bonus point distributed by percentage
+      const team1BonusPoints = team1Percentage * 1;
+      const team2BonusPoints = team2Percentage * 1;
+      
+      return {
+        team1Points: team1BasePoints + team1BonusPoints,
+        team2Points: team2BasePoints + team2BonusPoints
+      };
+    } else {
+      return {
+        team1Points: team1BasePoints,
+        team2Points: team2BasePoints
+      };
+    }
   } else {
-    return won ? 3 : 0;
+    const team1Won = team1Score > team2Score;
+    return {
+      team1Points: team1Won ? 3 : 0,
+      team2Points: team1Won ? 0 : 3
+    };
   }
 }

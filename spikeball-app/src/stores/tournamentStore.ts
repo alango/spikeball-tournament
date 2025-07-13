@@ -216,23 +216,47 @@ const useTournamentStore = create<TournamentStore>()(
         const updatedPlayers = { ...state.currentTournament.players };
 
         // Calculate points based on scoring system
-        const calculatePoints = (score: number, opponentScore: number, won: boolean) => {
+        const calculatePoints = () => {
           if (state.currentTournament!.configuration.scoringSystem === 'win-loss') {
-            return won ? 3 : 0;
+            return {
+              team1Points: team1Won ? 3 : 0,
+              team2Points: team1Won ? 0 : 3
+            };
           } else if (state.currentTournament!.configuration.bonusPointsEnabled) {
-            // Win-loss-bonus system: 3 points for win, plus percentage-based bonus
-            const basePoints = won ? 3 : 0;
-            const totalGameScore = score + opponentScore;
-            const percentage = totalGameScore > 0 ? (score / totalGameScore) : 0;
-            const bonusPoints = percentage * 2; // Up to 2 bonus points
-            return basePoints + bonusPoints;
+            // Win-loss-bonus system: 3 points for win, plus 1 total bonus point distributed by percentage
+            const team1BasePoints = team1Won ? 3 : 0;
+            const team2BasePoints = team1Won ? 0 : 3;
+            
+            const totalGameScore = team1Score + team2Score;
+            if (totalGameScore > 0) {
+              const team1Percentage = team1Score / totalGameScore;
+              const team2Percentage = team2Score / totalGameScore;
+              
+              // 1 total bonus point distributed by percentage
+              const team1BonusPoints = team1Percentage * 1;
+              const team2BonusPoints = team2Percentage * 1;
+              
+              return {
+                team1Points: team1BasePoints + team1BonusPoints,
+                team2Points: team2BasePoints + team2BonusPoints
+              };
+            } else {
+              return {
+                team1Points: team1BasePoints,
+                team2Points: team2BasePoints
+              };
+            }
           } else {
-            return won ? 3 : 0;
+            return {
+              team1Points: team1Won ? 3 : 0,
+              team2Points: team1Won ? 0 : 3
+            };
           }
         };
 
-        const team1Points = calculatePoints(team1Score, team2Score, team1Won);
-        const team2Points = calculatePoints(team2Score, team1Score, !team1Won);
+        const pointsResult = calculatePoints();
+        const team1Points = pointsResult.team1Points;
+        const team2Points = pointsResult.team2Points;
 
         // Helper function to update player stats
         const updatePlayerStats = (playerId: string, won: boolean, points: number) => {
@@ -252,12 +276,47 @@ const useTournamentStore = create<TournamentStore>()(
             // If match was already completed, we need to recalculate
             // This handles score corrections
             const oldTeam1Won = match.team1Score! > match.team2Score!;
-            const oldTeam1Points = calculatePoints(match.team1Score!, match.team2Score!, oldTeam1Won);
-            const oldTeam2Points = calculatePoints(match.team2Score!, match.team1Score!, !oldTeam1Won);
             
-            const oldPoints = oldTeam1Won ? 
-              (playerId === team1Player1Id || playerId === team1Player2Id ? oldTeam1Points : oldTeam2Points) :
-              (playerId === team2Player1Id || playerId === team2Player2Id ? oldTeam2Points : oldTeam1Points);
+            // Calculate old points using the same logic
+            const oldPointsCalculation = (() => {
+              if (state.currentTournament!.configuration.scoringSystem === 'win-loss') {
+                return {
+                  team1Points: oldTeam1Won ? 3 : 0,
+                  team2Points: oldTeam1Won ? 0 : 3
+                };
+              } else if (state.currentTournament!.configuration.bonusPointsEnabled) {
+                const team1BasePoints = oldTeam1Won ? 3 : 0;
+                const team2BasePoints = oldTeam1Won ? 0 : 3;
+                
+                const totalGameScore = match.team1Score! + match.team2Score!;
+                if (totalGameScore > 0) {
+                  const team1Percentage = match.team1Score! / totalGameScore;
+                  const team2Percentage = match.team2Score! / totalGameScore;
+                  
+                  const team1BonusPoints = team1Percentage * 1;
+                  const team2BonusPoints = team2Percentage * 1;
+                  
+                  return {
+                    team1Points: team1BasePoints + team1BonusPoints,
+                    team2Points: team2BasePoints + team2BonusPoints
+                  };
+                } else {
+                  return {
+                    team1Points: team1BasePoints,
+                    team2Points: team2BasePoints
+                  };
+                }
+              } else {
+                return {
+                  team1Points: oldTeam1Won ? 3 : 0,
+                  team2Points: oldTeam1Won ? 0 : 3
+                };
+              }
+            })();
+            
+            const oldPoints = (playerId === team1Player1Id || playerId === team1Player2Id) 
+              ? oldPointsCalculation.team1Points 
+              : oldPointsCalculation.team2Points;
             
             const pointsDifference = points - oldPoints;
 
