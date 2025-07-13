@@ -29,7 +29,8 @@ The grouping algorithm calculates optimal group sizes using the formula `2A + 3B
 - Cannot add players after first round begins
 - Cannot start tournament until supported number of players (8-30) are added
 - All matches in a round must be completed before generating next round
-- Scoring: Win/Loss (3 points for win, 0 for loss) with optional bonus points
+- Scoring: Win/Loss (3 points for win, 0 for loss) with optional fractional bonus points based on percentage of points won (e.g., losing 15-21 gives 15/(15+21) = 0.42 bonus points)
+- Group sizes are calculated once at tournament start and remain fixed throughout
 
 ## Data Tracking Per Player
 
@@ -42,7 +43,7 @@ The grouping algorithm calculates optimal group sizes using the formula `2A + 3B
 ## Ranking Criteria
 
 1. Total points
-2. Strength of schedule (average opponent rating)
+2. Strength of schedule (average of opponents' current ratings)
 
 ## Development Notes
 

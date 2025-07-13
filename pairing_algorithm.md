@@ -44,14 +44,14 @@ def calculate_groups(n_players, prefer_larger_groups=True):
 
 Each round, groups are assigned as follows:
 1. Bye assignment - Assign the necessary number of byes to players with the fewest byes so far (breaking ties randomly)
-2. Create groups - Using the fixed calculated group sizes, separate the remaining field into the groups for that round. To do this, take the first group size and take that number of the highest ranked players. Continue until all groups have been created.
+2. Create groups - Using the fixed calculated group sizes (determined once at tournament start and kept constant throughout), separate the remaining field into the groups for that round. To do this, take the first group size and take that number of the highest ranked players. Continue until all groups have been created.
 3. For each group, create match-ups with the "Creating Pairs" algorithm.
 
 **Creating Pairs**
 For each group of 8 or 12 players:
 1. Generate all possible sets of teams.
 2. Choose the 1 that has the fewest number of repeat partners.
-    a. If there are ties, for each set find the minimum and maximum scores for the teams in each potential set. Choose the set with the smallest difference between the max and min.
+    a. If there are ties, for each set find the minimum and maximum team scores (sum of both players' scores) in each potential set. Choose the set with the smallest difference between the max and min team scores.
 3. With the 4 or 6 teams in the set, now generate all possible sets of matches.
 4. Choose the set of matches that minmises the total number of repeat opponents.
     a. Break ties by choosing the set of matches that minimises total score difference between opponents.

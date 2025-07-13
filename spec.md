@@ -30,7 +30,7 @@ This website is only intended for use by tournament organisers to create and man
 - **Player Limit**: Supports between 8 and 30 players
 - **Scoring System**: 
   - Win/Loss (3 points for win, 0 for loss)
-  - Optional bonus point (percentage of points won that match)
+  - Optional bonus point (fractional point based on percentage of points won that match, e.g., losing 15-21 gives 15/(15+21) = 0.42 bonus points)
 - **Tournament Mode**: Swiss Individual
 - **Description**: Optional text area (max 500 characters)
 
@@ -57,7 +57,7 @@ This website is only intended for use by tournament organisers to create and man
 - **Performance Metrics**: 
   - Points per game average
   - Win percentage
-  - Strength of schedule (average opponent rating)
+  - Strength of schedule (average of opponents' current ratings)
 
 #### **2.2.2 Leaderboard Display**
 **Ranking Criteria** (in order):
