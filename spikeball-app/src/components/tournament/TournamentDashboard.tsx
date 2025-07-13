@@ -44,7 +44,7 @@ export function TournamentDashboard() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-semibold text-gray-900">
-              {currentTournament.rounds.length}
+              {currentTournament.rounds.filter(round => round.isCompleted).length}
             </div>
             <div className="text-sm text-gray-500">Rounds Played</div>
           </div>
