@@ -7,6 +7,7 @@ import type {
   TournamentConfig,
   PlayerStats,
 } from '../types';
+import { calculateGroups } from '../algorithms/groupCalculation';
 
 interface TournamentStore {
   // State
@@ -117,13 +118,15 @@ const useTournamentStore = create<TournamentStore>()(
         const state = get();
         if (!state.currentTournament) return;
 
-        // TODO: Calculate group configuration using the algorithm
-        // This will be implemented in Phase 3
+        const playerCount = Object.keys(state.currentTournament.players).length;
+        const groupConfig = calculateGroups(playerCount, true);
+
         set({
           currentTournament: {
             ...state.currentTournament,
             isStarted: true,
             currentRound: 1,
+            groupConfiguration: groupConfig,
           },
         });
       },

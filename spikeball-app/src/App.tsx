@@ -1,4 +1,5 @@
 import useTournamentStore from './stores/tournamentStore';
+import { TournamentSetup } from './components/tournament/TournamentSetup';
 
 function App() {
   const { currentTournament } = useTournamentStore();
@@ -21,7 +22,7 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentTournament ? (
+        {currentTournament?.isStarted ? (
           <TournamentDashboard />
         ) : (
           <TournamentSetup />
@@ -32,18 +33,6 @@ function App() {
 }
 
 // Placeholder components - will be implemented in later phases
-function TournamentSetup() {
-  return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Tournament Setup</h2>
-        <p className="text-gray-600">
-          Tournament setup will be implemented in Phase 2
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function TournamentDashboard() {
   return (
