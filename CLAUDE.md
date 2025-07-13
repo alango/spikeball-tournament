@@ -122,4 +122,9 @@ npm run build
 
 # Run linting
 npm run lint
+
+# Run tests
+npm run test        # Interactive mode
+npm run test:run    # Run once
+npm run test:ui     # Visual test interface
 ```

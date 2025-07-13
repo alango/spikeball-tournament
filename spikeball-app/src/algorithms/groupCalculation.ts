@@ -32,6 +32,19 @@ export function calculateGroups(
 
   // Step 3: Choose preferred solution
   let bestSolution: [number, number];
+  
+  if (validSolutions.length === 0) {
+    // No valid solutions - return minimal configuration
+    return {
+      totalPlayers: nPlayers,
+      byes,
+      activePlayersPerRound,
+      groupsOf8: 0,
+      groupsOf12: 0,
+      totalGroups: 0,
+    };
+  }
+  
   if (preferLargerGroups) {
     // Maximize 12-player groups
     bestSolution = validSolutions.reduce((best, current) => 
