@@ -104,20 +104,32 @@ This document outlines the incremental development phases for the Spikeball Tour
 - Fixed TypeScript build errors and verified successful compilation
 - Dev server running successfully on localhost:5174 with correct Node.js version
 
-## Phase 5: Score Entry & Round Management
+## Phase 5: Score Entry & Round Management ✅ **COMPLETED**
 **Goal**: Complete tournament gameplay with score tracking
 
 ### Checklist
-- [ ] Create ScoreEntry component for match results
-- [ ] Implement score input validation (numeric, reasonable bounds)
-- [ ] Add bonus point calculation (percentage-based scoring)
-- [ ] Create round completion workflow
-- [ ] Update player statistics after each round
-- [ ] Implement automatic round generation after completion
-- [ ] Add match completion status indicators
-- [ ] Create round validation (all matches must be complete)
-- [ ] Test complete tournament workflow from start to finish
-- [ ] Verify score calculations and leaderboard updates
+- [x] Create ScoreEntry component for match results
+- [x] Implement score input validation (numeric, reasonable bounds)
+- [x] Add bonus point calculation (percentage-based scoring)
+- [x] Create round completion workflow
+- [x] Update player statistics after each round
+- [x] Implement automatic round generation after completion
+- [x] Add match completion status indicators
+- [x] Create round validation (all matches must be complete)
+- [x] Test complete tournament workflow from start to finish
+- [x] Verify score calculations and leaderboard updates
+
+### Completion Notes
+- ScoreEntry component with real-time score input and validation
+- Comprehensive scoring system supporting both win-loss and win-loss-bonus modes
+- Bonus point calculation: 3 points for win + up to 2 bonus points based on score percentage
+- Points preview shown in real-time when bonus points are enabled
+- Complete round workflow with match completion tracking and round advancement
+- Player statistics automatically updated: currentScore, gamesPlayed, wins, losses
+- Round completion validation ensures all matches are finished before advancing
+- Score corrections supported for completed matches with proper recalculation
+- Match completion status indicators and progress tracking
+- Tournament workflow fully functional from player registration through multiple rounds
 
 ## Phase 6: Advanced UI & User Experience
 **Goal**: Polish the interface and improve usability

@@ -159,19 +159,165 @@ const useTournamentStore = create<TournamentStore>()(
         const state = get();
         if (!state.currentTournament) return;
 
-        // TODO: Implement score update logic
-        // This will be implemented in Phase 5
-        console.log('Update match score - to be implemented', {
-          matchId,
+        // Find the match in the current round
+        const currentRound = state.currentTournament.rounds.find(
+          round => round.roundNumber === state.currentTournament!.currentRound
+        );
+        
+        if (!currentRound) {
+          console.error('Current round not found');
+          return;
+        }
+
+        const matchIndex = currentRound.matches.findIndex(match => match.id === matchId);
+        if (matchIndex === -1) {
+          console.error('Match not found');
+          return;
+        }
+
+        const match = currentRound.matches[matchIndex];
+        const wasCompleted = match.isCompleted;
+
+        // Update match scores
+        const updatedMatch = {
+          ...match,
           team1Score,
           team2Score,
+          isCompleted: true,
+        };
+
+        // Calculate winner and update player statistics
+        const team1Won = team1Score > team2Score;
+        const [team1Player1Id, team1Player2Id] = match.team1Id.split('-');
+        const [team2Player1Id, team2Player2Id] = match.team2Id.split('-');
+
+        const updatedPlayers = { ...state.currentTournament.players };
+
+        // Calculate points based on scoring system
+        const calculatePoints = (score: number, opponentScore: number, won: boolean) => {
+          if (state.currentTournament!.configuration.scoringSystem === 'win-loss') {
+            return won ? 3 : 0;
+          } else if (state.currentTournament!.configuration.bonusPointsEnabled) {
+            // Win-loss-bonus system: 3 points for win, plus percentage-based bonus
+            const basePoints = won ? 3 : 0;
+            const totalGameScore = score + opponentScore;
+            const percentage = totalGameScore > 0 ? (score / totalGameScore) : 0;
+            const bonusPoints = percentage * 2; // Up to 2 bonus points
+            return basePoints + bonusPoints;
+          } else {
+            return won ? 3 : 0;
+          }
+        };
+
+        const team1Points = calculatePoints(team1Score, team2Score, team1Won);
+        const team2Points = calculatePoints(team2Score, team1Score, !team1Won);
+
+        // Helper function to update player stats
+        const updatePlayerStats = (playerId: string, won: boolean, points: number) => {
+          const player = updatedPlayers[playerId];
+          if (!player) return;
+
+          // Only update if this match wasn't already completed
+          if (!wasCompleted) {
+            updatedPlayers[playerId] = {
+              ...player,
+              currentScore: player.currentScore + points,
+              gamesPlayed: player.gamesPlayed + 1,
+              wins: player.wins + (won ? 1 : 0),
+              losses: player.losses + (won ? 0 : 1),
+            };
+          } else {
+            // If match was already completed, we need to recalculate
+            // This handles score corrections
+            const oldTeam1Won = match.team1Score! > match.team2Score!;
+            const oldTeam1Points = calculatePoints(match.team1Score!, match.team2Score!, oldTeam1Won);
+            const oldTeam2Points = calculatePoints(match.team2Score!, match.team1Score!, !oldTeam1Won);
+            
+            const oldPoints = oldTeam1Won ? 
+              (playerId === team1Player1Id || playerId === team1Player2Id ? oldTeam1Points : oldTeam2Points) :
+              (playerId === team2Player1Id || playerId === team2Player2Id ? oldTeam2Points : oldTeam1Points);
+            
+            const pointsDifference = points - oldPoints;
+
+            const oldWon = oldTeam1Won ? (playerId === team1Player1Id || playerId === team1Player2Id)
+                                      : (playerId === team2Player1Id || playerId === team2Player2Id);
+            const winDifference = (won ? 1 : 0) - (oldWon ? 1 : 0);
+            const lossDifference = (won ? 0 : 1) - (oldWon ? 0 : 1);
+
+            updatedPlayers[playerId] = {
+              ...player,
+              currentScore: player.currentScore + pointsDifference,
+              wins: player.wins + winDifference,
+              losses: player.losses + lossDifference,
+            };
+          }
+        };
+
+        // Update team 1 players
+        updatePlayerStats(team1Player1Id, team1Won, team1Points);
+        updatePlayerStats(team1Player2Id, team1Won, team1Points);
+
+        // Update team 2 players  
+        updatePlayerStats(team2Player1Id, !team1Won, team2Points);
+        updatePlayerStats(team2Player2Id, !team1Won, team2Points);
+
+        // Update the tournament state
+        const updatedRounds = [...state.currentTournament.rounds];
+        updatedRounds[updatedRounds.length - 1] = {
+          ...currentRound,
+          matches: [
+            ...currentRound.matches.slice(0, matchIndex),
+            updatedMatch,
+            ...currentRound.matches.slice(matchIndex + 1),
+          ],
+        };
+
+        set({
+          currentTournament: {
+            ...state.currentTournament,
+            players: updatedPlayers,
+            rounds: updatedRounds,
+          },
         });
       },
 
       completeRound: () => {
-        // TODO: Implement round completion logic
-        // This will be implemented in Phase 5
-        console.log('Complete round - to be implemented');
+        const state = get();
+        if (!state.currentTournament) return;
+
+        const currentRound = state.currentTournament.rounds.find(
+          round => round.roundNumber === state.currentTournament!.currentRound
+        );
+
+        if (!currentRound) {
+          console.error('Current round not found');
+          return;
+        }
+
+        // Check if all matches are completed
+        const allMatchesCompleted = currentRound.matches.every(match => match.isCompleted);
+        if (!allMatchesCompleted) {
+          console.error('Cannot complete round: not all matches are finished');
+          return;
+        }
+
+        // Mark the round as completed
+        const updatedRounds = state.currentTournament.rounds.map(round =>
+          round.roundNumber === state.currentTournament!.currentRound
+            ? { ...round, isCompleted: true }
+            : round
+        );
+
+        // Advance to next round
+        const nextRoundNumber = state.currentTournament.currentRound + 1;
+
+        set({
+          currentTournament: {
+            ...state.currentTournament,
+            rounds: updatedRounds,
+            currentRound: nextRoundNumber,
+          },
+        });
       },
 
       resetTournament: () => {
