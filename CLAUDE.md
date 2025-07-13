@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ IMPORTANT: Development Workflow
+
+**ALWAYS follow this workflow before implementing anything:**
+
+1. **Consult the development plan**: Check `development.md` to see current phase and requirements
+2. **Review design specifications**: Read `design.md` for architecture and technology decisions  
+3. **Check project specifications**: Reference `spec.md` and `pairing_algorithm.md` for business requirements
+4. **Verify consistency**: Ensure your implementation aligns with existing code and doesn't conflict with the established architecture
+5. **Update documentation**: After completing any development phase, mark it as complete in `development.md` with completion notes
+
+**When completing a development phase:**
+- Mark all checklist items as `[x]` completed
+- Add `✅ COMPLETED` to the phase title
+- Include completion notes with any important details, changes, or deviations from the original plan
+- Update `CLAUDE.md` if new patterns or conventions were established
+
 ## Project Overview
 
 This is a Spikeball Swiss Individual Tournament Generator - a web application for organizing tournaments where players change partners each round while maintaining individual rankings.
@@ -69,3 +85,29 @@ The grouping algorithm calculates optimal group sizes using the formula `2A + 3B
 - Comprehensive TypeScript types for all data models
 - Memoization for expensive pairing calculations
 - Component memoization with React.memo for performance
+
+## Current Status
+
+**Phase 1: Project Foundation & Basic Setup** ✅ COMPLETED
+- Modern development environment with Node.js 20.19.3
+- Tailwind CSS 4.0 with simplified setup
+- Comprehensive TypeScript interfaces and Zustand store
+- Working build and development processes
+
+**Next Phase**: Phase 2 - Tournament Setup & Player Management
+
+## Development Commands
+
+```bash
+# Ensure correct Node version
+nvm use
+
+# Start development server  
+npm run dev
+
+# Build for production
+npm run build
+
+# Run linting
+npm run lint
+```
