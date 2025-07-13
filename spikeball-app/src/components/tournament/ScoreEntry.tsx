@@ -18,9 +18,31 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
 
   // Get player names for teams
   const getTeamPlayers = (teamId: string) => {
-    const [player1Id, player2Id] = teamId.split('-');
+    // Team ID format is "team-{player1Id}-{player2Id}" where player IDs are UUIDs
+    // UUIDs contain hyphens, so we need to parse carefully
+    // Format: team-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
+    
+    if (!teamId.startsWith('team-')) {
+      return { player1: null, player2: null };
+    }
+    
+    // Remove "team-" prefix
+    const withoutPrefix = teamId.substring(5);
+    
+    // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 characters including hyphens)
+    // So the first UUID ends at position 36, then we have another hyphen, then the second UUID
+    const firstUuidEnd = 36;
+    
+    if (withoutPrefix.length < firstUuidEnd + 1 + 36) {
+      return { player1: null, player2: null };
+    }
+    
+    const player1Id = withoutPrefix.substring(0, firstUuidEnd);
+    const player2Id = withoutPrefix.substring(firstUuidEnd + 1); // +1 to skip the separating hyphen
+    
     const player1 = currentTournament.players[player1Id];
     const player2 = currentTournament.players[player2Id];
+    
     return { player1, player2 };
   };
 

@@ -188,8 +188,30 @@ const useTournamentStore = create<TournamentStore>()(
 
         // Calculate winner and update player statistics
         const team1Won = team1Score > team2Score;
-        const [team1Player1Id, team1Player2Id] = match.team1Id.split('-');
-        const [team2Player1Id, team2Player2Id] = match.team2Id.split('-');
+        
+        // Parse team IDs (format: "team-{player1Id}-{player2Id}" where player IDs are UUIDs)
+        const parseTeamId = (teamId: string) => {
+          if (!teamId.startsWith('team-')) return { player1Id: '', player2Id: '' };
+          
+          const withoutPrefix = teamId.substring(5);
+          const firstUuidEnd = 36; // UUID is 36 characters including hyphens
+          
+          if (withoutPrefix.length < firstUuidEnd + 1 + 36) {
+            return { player1Id: '', player2Id: '' };
+          }
+          
+          return {
+            player1Id: withoutPrefix.substring(0, firstUuidEnd),
+            player2Id: withoutPrefix.substring(firstUuidEnd + 1)
+          };
+        };
+        
+        const team1Players = parseTeamId(match.team1Id);
+        const team2Players = parseTeamId(match.team2Id);
+        const team1Player1Id = team1Players.player1Id;
+        const team1Player2Id = team1Players.player2Id;
+        const team2Player1Id = team2Players.player1Id;
+        const team2Player2Id = team2Players.player2Id;
 
         const updatedPlayers = { ...state.currentTournament.players };
 
