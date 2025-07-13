@@ -6,8 +6,8 @@ Separate players into groups. Groups can contain either 8 or 12 players.
 At the start of the tournament, group sizes are calculated by the following algorithm:
 ```python
 def calculate_groups(n_players, prefer_larger_groups=True):
-    # Step 1: Calculate byes needed to make divisible by 4
-    byes = (4 - (n_players % 4)) % 4
+    # Step 1: Calculate byes needed to bring players down to a multiple of 4
+    byes = n_players % 4
     active_players = n_players - byes
     target = active_players // 4  # This will always be an integer
     

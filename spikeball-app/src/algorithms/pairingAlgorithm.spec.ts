@@ -165,17 +165,10 @@ describe('Pairing Algorithm', () => {
       
       const result = generateRound(players, 1);
       
-      // 9 players need 3 byes, leaving 6 players, which can't form valid 8 or 12 player groups
-      // So the algorithm should fail gracefully or handle this edge case
-      expect(result.byes.length).toBe(3); // 9 players need 3 byes
-      
-      // The algorithm might fail for 6 remaining players (can't form groups of 8 or 12)
-      if (!result.success) {
-        expect(result.errors).toBeDefined();
-      } else {
-        // If it succeeds, there should be no matches since 6 players can't form valid groups
-        expect(result.round.matches.length).toBe(0);
-      }
+      expect(result.success).toBe(true);
+      expect(result.byes.length).toBe(1); // 9 % 4 = 1 bye
+      expect(result.round.matches.length).toBe(2); // 8 players → 1 group of 8 → 2 matches
+      expect(result.groups).toHaveLength(1); // 1 group of 8
     });
 
     it('should handle various player counts', () => {

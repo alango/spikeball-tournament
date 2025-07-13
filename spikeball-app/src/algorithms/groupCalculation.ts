@@ -12,8 +12,9 @@ export function calculateGroups(
   nPlayers: number, 
   preferLargerGroups: boolean = true
 ): GroupCalculationResult {
-  // Step 1: Calculate byes needed to make divisible by 4
-  const byes = (4 - (nPlayers % 4)) % 4;
+  // Step 1: Calculate byes needed to bring players DOWN to a multiple of 4
+  // This is the correct logic: remove excess players to reach the largest multiple of 4
+  const byes = nPlayers % 4;
   const activePlayersPerRound = nPlayers - byes;
   const target = activePlayersPerRound / 4; // This will always be an integer
 

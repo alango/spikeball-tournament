@@ -23,14 +23,14 @@ describe('Group Calculation Algorithm', () => {
       expect(result.totalGroups).toBe(1);
     });
 
-    it('should calculate correct groups for 9 players (requires 3 byes)', () => {
+    it('should calculate correct groups for 9 players (requires 1 bye)', () => {
       const result = calculateGroups(9, true);
       expect(result.totalPlayers).toBe(9);
-      expect(result.byes).toBe(3);
-      expect(result.activePlayersPerRound).toBe(6);
-      expect(result.groupsOf8).toBe(0);
+      expect(result.byes).toBe(1); // 9 % 4 = 1
+      expect(result.activePlayersPerRound).toBe(8);
+      expect(result.groupsOf8).toBe(1);
       expect(result.groupsOf12).toBe(0);
-      // With 6 active players, no valid groups of 8 or 12
+      expect(result.totalGroups).toBe(1);
     });
 
     it('should calculate correct groups for 16 players', () => {
