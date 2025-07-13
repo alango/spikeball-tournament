@@ -47,6 +47,7 @@ export function Leaderboard() {
             player={player} 
             rank={index + 1}
             isTopThree={index < 3}
+            currentTournament={currentTournament}
           />
         ))}
       </div>
@@ -58,9 +59,10 @@ interface PlayerRowProps {
   player: Player;
   rank: number;
   isTopThree: boolean;
+  currentTournament: any; // Using any for now to avoid circular type issues
 }
 
-function PlayerRow({ player, rank, isTopThree }: PlayerRowProps) {
+function PlayerRow({ player, rank, isTopThree, currentTournament }: PlayerRowProps) {
   const winPercentage = player.gamesPlayed > 0 ? (player.wins / player.gamesPlayed * 100) : 0;
   const pointsPerGame = player.gamesPlayed > 0 ? (player.currentScore / player.gamesPlayed) : 0;
 
@@ -97,7 +99,10 @@ function PlayerRow({ player, rank, isTopThree }: PlayerRowProps) {
 
       <div className="text-right">
         <div className="text-lg font-semibold text-gray-900">
-          {player.currentScore}
+          {currentTournament.configuration.bonusPointsEnabled 
+            ? player.currentScore.toFixed(2) 
+            : player.currentScore.toString()
+          }
         </div>
         <div className="text-xs text-gray-500">
           {player.gamesPlayed > 0 ? `${pointsPerGame.toFixed(1)} ppg` : 'No games'}
