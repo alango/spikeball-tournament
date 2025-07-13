@@ -1,7 +1,7 @@
-import { Card } from '../ui';
 import useTournamentStore from '../../stores/tournamentStore';
 import { Leaderboard } from './Leaderboard';
 import { CurrentRound } from './CurrentRound';
+import { PreviousRounds } from './PreviousRounds';
 
 export function TournamentDashboard() {
   const { currentTournament } = useTournamentStore();
@@ -70,14 +70,9 @@ export function TournamentDashboard() {
           <Leaderboard />
         </div>
 
-        {/* Previous Rounds - Placeholder for Phase 6 */}
+        {/* Previous Rounds */}
         <div className="lg:col-span-1">
-          <Card title="Previous Rounds">
-            <div className="text-center text-gray-500 py-8">
-              <p>Previous rounds will be displayed here</p>
-              <p className="text-sm mt-2">(Phase 6 feature)</p>
-            </div>
-          </Card>
+          <PreviousRounds />
         </div>
 
         {/* Current Round */}
