@@ -85,6 +85,86 @@ export function Leaderboard() {
     return opponentScores.reduce((sum, score) => sum + score, 0) / opponentScores.length;
   };
 
+  // Get teammates for a player from completed matches
+  const getPlayerTeammates = (player: Player) => {
+    if (!currentTournament) return [];
+    
+    const completedRounds = currentTournament.rounds.filter(round => round.isCompleted);
+    const allTeammates: string[] = [];
+    
+    completedRounds.forEach(round => {
+      round.matches.forEach(match => {
+        if (!match.isCompleted) return;
+        
+        const parseTeamId = (teamId: string) => {
+          if (!teamId.startsWith('team-')) return [];
+          const withoutPrefix = teamId.substring(5);
+          const firstUuidEnd = 36;
+          if (withoutPrefix.length < firstUuidEnd + 1 + 36) return [];
+          return [
+            withoutPrefix.substring(0, firstUuidEnd),
+            withoutPrefix.substring(firstUuidEnd + 1)
+          ];
+        };
+        
+        const team1Players = parseTeamId(match.team1Id);
+        const team2Players = parseTeamId(match.team2Id);
+        
+        // If this player was on team 1, the other team 1 player is a teammate
+        if (team1Players.includes(player.id)) {
+          const teammate = team1Players.find(id => id !== player.id);
+          if (teammate) allTeammates.push(teammate);
+        }
+        // If this player was on team 2, the other team 2 player is a teammate
+        else if (team2Players.includes(player.id)) {
+          const teammate = team2Players.find(id => id !== player.id);
+          if (teammate) allTeammates.push(teammate);
+        }
+      });
+    });
+    
+    return allTeammates;
+  };
+
+  // Get opponents for a player from completed matches
+  const getPlayerOpponents = (player: Player) => {
+    if (!currentTournament) return [];
+    
+    const completedRounds = currentTournament.rounds.filter(round => round.isCompleted);
+    const allOpponents: string[] = [];
+    
+    completedRounds.forEach(round => {
+      round.matches.forEach(match => {
+        if (!match.isCompleted) return;
+        
+        const parseTeamId = (teamId: string) => {
+          if (!teamId.startsWith('team-')) return [];
+          const withoutPrefix = teamId.substring(5);
+          const firstUuidEnd = 36;
+          if (withoutPrefix.length < firstUuidEnd + 1 + 36) return [];
+          return [
+            withoutPrefix.substring(0, firstUuidEnd),
+            withoutPrefix.substring(firstUuidEnd + 1)
+          ];
+        };
+        
+        const team1Players = parseTeamId(match.team1Id);
+        const team2Players = parseTeamId(match.team2Id);
+        
+        // If this player was on team 1, team 2 players are opponents
+        if (team1Players.includes(player.id)) {
+          allOpponents.push(...team2Players);
+        }
+        // If this player was on team 2, team 1 players are opponents
+        else if (team2Players.includes(player.id)) {
+          allOpponents.push(...team1Players);
+        }
+      });
+    });
+    
+    return allOpponents;
+  };
+
   if (!currentTournament) {
     return null;
   }
@@ -120,6 +200,8 @@ export function Leaderboard() {
                     <th className="text-center py-2 px-2 text-sm font-medium text-gray-700">Losses</th>
                     <th className="text-center py-2 px-2 text-sm font-medium text-gray-700">Byes</th>
                     <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">SOS</th>
+                    <th className="text-left py-2 px-2 text-sm font-medium text-gray-700">Teammates</th>
+                    <th className="text-left py-2 px-2 text-sm font-medium text-gray-700">Opponents</th>
                   </>
                 )}
               </tr>
@@ -133,6 +215,8 @@ export function Leaderboard() {
                   isTopThree={index < 3}
                   showDetailedStats={showDetailedStats}
                   strengthOfSchedule={calculateStrengthOfSchedule(player)}
+                  teammates={getPlayerTeammates(player)}
+                  opponents={getPlayerOpponents(player)}
                   currentTournament={currentTournament}
                 />
               ))}
@@ -150,6 +234,8 @@ interface PlayerTableRowProps {
   isTopThree: boolean;
   showDetailedStats: boolean;
   strengthOfSchedule: number;
+  teammates: string[];
+  opponents: string[];
   currentTournament: any; // Using any for now to avoid circular type issues
 }
 
@@ -159,6 +245,8 @@ function PlayerTableRow({
   isTopThree, 
   showDetailedStats, 
   strengthOfSchedule,
+  teammates,
+  opponents,
   currentTournament 
 }: PlayerTableRowProps) {
   const getRankBadge = (rank: number) => {
@@ -236,6 +324,46 @@ function PlayerTableRow({
             <span className="text-sm font-medium text-gray-900">
               {strengthOfSchedule > 0 ? strengthOfSchedule.toFixed(1) : '-'}
             </span>
+          </td>
+
+          {/* Teammates */}
+          <td className="py-3 px-2">
+            <div className="text-xs text-gray-600 max-w-32">
+              {teammates.length > 0 ? (
+                <div className="space-y-1">
+                  {teammates.map((teammateId, index) => {
+                    const teammate = currentTournament.players[teammateId];
+                    return (
+                      <div key={`${teammateId}-${index}`} className="truncate">
+                        {teammate?.name || 'Unknown'}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span className="text-gray-400">None</span>
+              )}
+            </div>
+          </td>
+
+          {/* Opponents */}
+          <td className="py-3 px-2">
+            <div className="text-xs text-gray-600 max-w-32">
+              {opponents.length > 0 ? (
+                <div className="space-y-1">
+                  {opponents.map((opponentId, index) => {
+                    const opponent = currentTournament.players[opponentId];
+                    return (
+                      <div key={`${opponentId}-${index}`} className="truncate">
+                        {opponent?.name || 'Unknown'}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span className="text-gray-400">None</span>
+              )}
+            </div>
           </td>
         </>
       )}
