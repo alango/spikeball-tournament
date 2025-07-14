@@ -3,7 +3,7 @@ This is the algorithm for taking a leaderboard of 8-30 players and producing the
 ## Grouping ##
 Separate players into groups. Groups can contain either 8 or 12 players.
 
-At the start of the tournament, group sizes are calculated by the following algorithm:
+At the start of the tournament, calculate the number of 8 or 12 player groups that the total player pool can be subdivided into (e.g 21 players -> 1 group of 8 and 1 group of 12). This is done by the following algorithm:
 ```python
 def calculate_groups(n_players, prefer_larger_groups=True):
     # Step 1: Calculate byes needed to bring players down to a multiple of 4
@@ -47,7 +47,7 @@ Each round, groups are assigned as follows:
 2. Create groups - Using the fixed calculated group sizes (determined once at tournament start and kept constant throughout), separate the remaining field into the groups for that round. To do this, take the first group size and take that number of the highest ranked players. Continue until all groups have been created.
 3. For each group, create match-ups with the "Creating Pairs" algorithm.
 
-**Creating Pairs**
+## Creating Teams and Matches
 For each group of 8 or 12 players:
 1. Generate all possible sets of teams.
 2. Choose the 1 that has the fewest number of repeat partners.
