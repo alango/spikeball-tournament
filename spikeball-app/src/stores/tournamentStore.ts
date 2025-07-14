@@ -176,7 +176,6 @@ const useTournamentStore = create<TournamentStore>()(
         }
 
         const match = currentRound.matches[matchIndex];
-        const wasCompleted = match.isCompleted;
 
         // Update match scores
         const updatedMatch = {
@@ -186,186 +185,7 @@ const useTournamentStore = create<TournamentStore>()(
           isCompleted: true,
         };
 
-        // Calculate winner and update player statistics
-        const team1Won = team1Score > team2Score;
-        
-        // Parse team IDs (format: "team-{player1Id}-{player2Id}" where player IDs are UUIDs)
-        const parseTeamId = (teamId: string) => {
-          if (!teamId.startsWith('team-')) return { player1Id: '', player2Id: '' };
-          
-          const withoutPrefix = teamId.substring(5);
-          const firstUuidEnd = 36; // UUID is 36 characters including hyphens
-          
-          if (withoutPrefix.length < firstUuidEnd + 1 + 36) {
-            return { player1Id: '', player2Id: '' };
-          }
-          
-          return {
-            player1Id: withoutPrefix.substring(0, firstUuidEnd),
-            player2Id: withoutPrefix.substring(firstUuidEnd + 1)
-          };
-        };
-        
-        const team1Players = parseTeamId(match.team1Id);
-        const team2Players = parseTeamId(match.team2Id);
-        const team1Player1Id = team1Players.player1Id;
-        const team1Player2Id = team1Players.player2Id;
-        const team2Player1Id = team2Players.player1Id;
-        const team2Player2Id = team2Players.player2Id;
-
-        const updatedPlayers = { ...state.currentTournament.players };
-
-        // Calculate points based on scoring system
-        const calculatePoints = () => {
-          if (state.currentTournament!.configuration.scoringSystem === 'win-loss') {
-            return {
-              team1Points: team1Won ? 3 : 0,
-              team2Points: team1Won ? 0 : 3
-            };
-          } else if (state.currentTournament!.configuration.bonusPointsEnabled) {
-            // Win-loss-bonus system: 3 points for win, plus 1 total bonus point distributed by percentage
-            const team1BasePoints = team1Won ? 3 : 0;
-            const team2BasePoints = team1Won ? 0 : 3;
-            
-            const totalGameScore = team1Score + team2Score;
-            if (totalGameScore > 0) {
-              const team1Percentage = team1Score / totalGameScore;
-              const team2Percentage = team2Score / totalGameScore;
-              
-              // 1 total bonus point distributed by percentage
-              const team1BonusPoints = team1Percentage * 1;
-              const team2BonusPoints = team2Percentage * 1;
-              
-              return {
-                team1Points: team1BasePoints + team1BonusPoints,
-                team2Points: team2BasePoints + team2BonusPoints
-              };
-            } else {
-              return {
-                team1Points: team1BasePoints,
-                team2Points: team2BasePoints
-              };
-            }
-          } else {
-            return {
-              team1Points: team1Won ? 3 : 0,
-              team2Points: team1Won ? 0 : 3
-            };
-          }
-        };
-
-        const pointsResult = calculatePoints();
-        const team1Points = pointsResult.team1Points;
-        const team2Points = pointsResult.team2Points;
-
-        // Helper function to update player stats
-        const updatePlayerStats = (playerId: string, won: boolean, points: number) => {
-          const player = updatedPlayers[playerId];
-          if (!player) return;
-
-          // Only update if this match wasn't already completed
-          if (!wasCompleted) {
-            updatedPlayers[playerId] = {
-              ...player,
-              currentScore: player.currentScore + points,
-              gamesPlayed: player.gamesPlayed + 1,
-              wins: player.wins + (won ? 1 : 0),
-              losses: player.losses + (won ? 0 : 1),
-            };
-          } else {
-            // If match was already completed, we need to recalculate
-            // This handles score corrections
-            const oldTeam1Won = match.team1Score! > match.team2Score!;
-            
-            // Calculate old points using the same logic
-            const oldPointsCalculation = (() => {
-              if (state.currentTournament!.configuration.scoringSystem === 'win-loss') {
-                return {
-                  team1Points: oldTeam1Won ? 3 : 0,
-                  team2Points: oldTeam1Won ? 0 : 3
-                };
-              } else if (state.currentTournament!.configuration.bonusPointsEnabled) {
-                const team1BasePoints = oldTeam1Won ? 3 : 0;
-                const team2BasePoints = oldTeam1Won ? 0 : 3;
-                
-                const totalGameScore = match.team1Score! + match.team2Score!;
-                if (totalGameScore > 0) {
-                  const team1Percentage = match.team1Score! / totalGameScore;
-                  const team2Percentage = match.team2Score! / totalGameScore;
-                  
-                  const team1BonusPoints = team1Percentage * 1;
-                  const team2BonusPoints = team2Percentage * 1;
-                  
-                  return {
-                    team1Points: team1BasePoints + team1BonusPoints,
-                    team2Points: team2BasePoints + team2BonusPoints
-                  };
-                } else {
-                  return {
-                    team1Points: team1BasePoints,
-                    team2Points: team2BasePoints
-                  };
-                }
-              } else {
-                return {
-                  team1Points: oldTeam1Won ? 3 : 0,
-                  team2Points: oldTeam1Won ? 0 : 3
-                };
-              }
-            })();
-            
-            const oldPoints = (playerId === team1Player1Id || playerId === team1Player2Id) 
-              ? oldPointsCalculation.team1Points 
-              : oldPointsCalculation.team2Points;
-            
-            const pointsDifference = points - oldPoints;
-
-            const oldWon = oldTeam1Won ? (playerId === team1Player1Id || playerId === team1Player2Id)
-                                      : (playerId === team2Player1Id || playerId === team2Player2Id);
-            const winDifference = (won ? 1 : 0) - (oldWon ? 1 : 0);
-            const lossDifference = (won ? 0 : 1) - (oldWon ? 0 : 1);
-
-            updatedPlayers[playerId] = {
-              ...player,
-              currentScore: player.currentScore + pointsDifference,
-              wins: player.wins + winDifference,
-              losses: player.losses + lossDifference,
-            };
-          }
-        };
-
-        // Update team 1 players
-        updatePlayerStats(team1Player1Id, team1Won, team1Points);
-        updatePlayerStats(team1Player2Id, team1Won, team1Points);
-
-        // Update team 2 players  
-        updatePlayerStats(team2Player1Id, !team1Won, team2Points);
-        updatePlayerStats(team2Player2Id, !team1Won, team2Points);
-
-        // Update opponents tracking (only if this match wasn't already completed)
-        if (!wasCompleted) {
-          // Team 1 players faced Team 2 players as opponents
-          updatedPlayers[team1Player1Id] = {
-            ...updatedPlayers[team1Player1Id],
-            previousOpponents: [...updatedPlayers[team1Player1Id].previousOpponents, team2Player1Id, team2Player2Id]
-          };
-          updatedPlayers[team1Player2Id] = {
-            ...updatedPlayers[team1Player2Id],
-            previousOpponents: [...updatedPlayers[team1Player2Id].previousOpponents, team2Player1Id, team2Player2Id]
-          };
-
-          // Team 2 players faced Team 1 players as opponents
-          updatedPlayers[team2Player1Id] = {
-            ...updatedPlayers[team2Player1Id],
-            previousOpponents: [...updatedPlayers[team2Player1Id].previousOpponents, team1Player1Id, team1Player2Id]
-          };
-          updatedPlayers[team2Player2Id] = {
-            ...updatedPlayers[team2Player2Id],
-            previousOpponents: [...updatedPlayers[team2Player2Id].previousOpponents, team1Player1Id, team1Player2Id]
-          };
-        }
-
-        // Update the tournament state
+        // Update the tournament state - only update match data, not player stats
         const updatedRounds = [...state.currentTournament.rounds];
         updatedRounds[updatedRounds.length - 1] = {
           ...currentRound,
@@ -379,7 +199,6 @@ const useTournamentStore = create<TournamentStore>()(
         set({
           currentTournament: {
             ...state.currentTournament,
-            players: updatedPlayers,
             rounds: updatedRounds,
           },
         });
@@ -405,8 +224,107 @@ const useTournamentStore = create<TournamentStore>()(
           return;
         }
 
-        // Update player bye histories for this completed round
+        // Calculate all stats from completed matches in this round
         const updatedPlayers = { ...state.currentTournament.players };
+        
+        // Helper function to parse team IDs
+        const parseTeamId = (teamId: string) => {
+          if (!teamId.startsWith('team-')) return { player1Id: '', player2Id: '' };
+          
+          const withoutPrefix = teamId.substring(5);
+          const firstUuidEnd = 36;
+          
+          if (withoutPrefix.length < firstUuidEnd + 1 + 36) {
+            return { player1Id: '', player2Id: '' };
+          }
+          
+          return {
+            player1Id: withoutPrefix.substring(0, firstUuidEnd),
+            player2Id: withoutPrefix.substring(firstUuidEnd + 1)
+          };
+        };
+
+        // Helper function to calculate points for a match
+        const calculateMatchPoints = (team1Score: number, team2Score: number, team1Won: boolean) => {
+          if (state.currentTournament!.configuration.scoringSystem === 'win-loss') {
+            return {
+              team1Points: team1Won ? 3 : 0,
+              team2Points: team1Won ? 0 : 3
+            };
+          } else if (state.currentTournament!.configuration.bonusPointsEnabled) {
+            const team1BasePoints = team1Won ? 3 : 0;
+            const team2BasePoints = team1Won ? 0 : 3;
+            
+            const totalGameScore = team1Score + team2Score;
+            if (totalGameScore > 0) {
+              const team1Percentage = team1Score / totalGameScore;
+              const team2Percentage = team2Score / totalGameScore;
+              
+              const team1BonusPoints = team1Percentage * 1;
+              const team2BonusPoints = team2Percentage * 1;
+              
+              return {
+                team1Points: team1BasePoints + team1BonusPoints,
+                team2Points: team2BasePoints + team2BonusPoints
+              };
+            } else {
+              return {
+                team1Points: team1BasePoints,
+                team2Points: team2BasePoints
+              };
+            }
+          } else {
+            return {
+              team1Points: team1Won ? 3 : 0,
+              team2Points: team1Won ? 0 : 3
+            };
+          }
+        };
+
+        // Process all completed matches in this round
+        currentRound.matches.forEach(match => {
+          if (!match.isCompleted || match.team1Score === undefined || match.team2Score === undefined) {
+            return;
+          }
+
+          const team1Won = match.team1Score > match.team2Score;
+          const matchPoints = calculateMatchPoints(match.team1Score, match.team2Score, team1Won);
+          
+          const team1Players = parseTeamId(match.team1Id);
+          const team2Players = parseTeamId(match.team2Id);
+
+          // Update team 1 players
+          [team1Players.player1Id, team1Players.player2Id].forEach(playerId => {
+            if (playerId && updatedPlayers[playerId]) {
+              updatedPlayers[playerId] = {
+                ...updatedPlayers[playerId],
+                currentScore: updatedPlayers[playerId].currentScore + matchPoints.team1Points,
+                gamesPlayed: updatedPlayers[playerId].gamesPlayed + 1,
+                wins: updatedPlayers[playerId].wins + (team1Won ? 1 : 0),
+                losses: updatedPlayers[playerId].losses + (team1Won ? 0 : 1),
+                previousOpponents: [...updatedPlayers[playerId].previousOpponents, team2Players.player1Id, team2Players.player2Id].filter(id => id),
+                previousTeammates: [...updatedPlayers[playerId].previousTeammates, playerId === team1Players.player1Id ? team1Players.player2Id : team1Players.player1Id].filter(id => id && id !== playerId)
+              };
+            }
+          });
+
+          // Update team 2 players
+          [team2Players.player1Id, team2Players.player2Id].forEach(playerId => {
+            if (playerId && updatedPlayers[playerId]) {
+              updatedPlayers[playerId] = {
+                ...updatedPlayers[playerId],
+                currentScore: updatedPlayers[playerId].currentScore + matchPoints.team2Points,
+                gamesPlayed: updatedPlayers[playerId].gamesPlayed + 1,
+                wins: updatedPlayers[playerId].wins + (team1Won ? 0 : 1),
+                losses: updatedPlayers[playerId].losses + (team1Won ? 1 : 0),
+                previousOpponents: [...updatedPlayers[playerId].previousOpponents, team1Players.player1Id, team1Players.player2Id].filter(id => id),
+                previousTeammates: [...updatedPlayers[playerId].previousTeammates, playerId === team2Players.player1Id ? team2Players.player2Id : team2Players.player1Id].filter(id => id && id !== playerId)
+              };
+            }
+          });
+        });
+
+        // Update player bye histories for this completed round
         currentRound.byes.forEach(playerId => {
           if (updatedPlayers[playerId]) {
             updatedPlayers[playerId] = {

@@ -139,6 +139,7 @@ This document outlines the incremental development phases for the Spikeball Tour
 - [x] Add match history display for each round
 - [x] Implement undo/edit functionality for scores (current round only)
 - [x] Redesign leaderboard with collapsible detailed stats (Wins, Losses, Byes, SOS)
+- [x] Implement delayed leaderboard updates (only update when round completes)
 - [ ] Improve mobile responsive design
 - [ ] Add loading states and error handling
 - [ ] Create comprehensive input validation with user-friendly error messages
