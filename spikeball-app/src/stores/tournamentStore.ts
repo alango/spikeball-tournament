@@ -342,6 +342,29 @@ const useTournamentStore = create<TournamentStore>()(
         updatePlayerStats(team2Player1Id, !team1Won, team2Points);
         updatePlayerStats(team2Player2Id, !team1Won, team2Points);
 
+        // Update opponents tracking (only if this match wasn't already completed)
+        if (!wasCompleted) {
+          // Team 1 players faced Team 2 players as opponents
+          updatedPlayers[team1Player1Id] = {
+            ...updatedPlayers[team1Player1Id],
+            previousOpponents: [...updatedPlayers[team1Player1Id].previousOpponents, team2Player1Id, team2Player2Id]
+          };
+          updatedPlayers[team1Player2Id] = {
+            ...updatedPlayers[team1Player2Id],
+            previousOpponents: [...updatedPlayers[team1Player2Id].previousOpponents, team2Player1Id, team2Player2Id]
+          };
+
+          // Team 2 players faced Team 1 players as opponents
+          updatedPlayers[team2Player1Id] = {
+            ...updatedPlayers[team2Player1Id],
+            previousOpponents: [...updatedPlayers[team2Player1Id].previousOpponents, team1Player1Id, team1Player2Id]
+          };
+          updatedPlayers[team2Player2Id] = {
+            ...updatedPlayers[team2Player2Id],
+            previousOpponents: [...updatedPlayers[team2Player2Id].previousOpponents, team1Player1Id, team1Player2Id]
+          };
+        }
+
         // Update the tournament state
         const updatedRounds = [...state.currentTournament.rounds];
         updatedRounds[updatedRounds.length - 1] = {

@@ -37,10 +37,48 @@ export function Leaderboard() {
 
   // Calculate strength of schedule for a player
   const calculateStrengthOfSchedule = (player: Player) => {
-    if (player.previousOpponents.length === 0) return 0;
+    // Alternative approach: calculate SOS from completed match history
+    if (!currentTournament) return 0;
     
-    const opponentScores = player.previousOpponents.map(opponentId => {
-      const opponent = currentTournament?.players[opponentId];
+    const completedRounds = currentTournament.rounds.filter(round => round.isCompleted);
+    const allOpponents: string[] = [];
+    
+    // Find all opponents this player has faced in completed matches
+    completedRounds.forEach(round => {
+      round.matches.forEach(match => {
+        if (!match.isCompleted) return;
+        
+        // Parse team IDs to get player IDs
+        const parseTeamId = (teamId: string) => {
+          if (!teamId.startsWith('team-')) return [];
+          const withoutPrefix = teamId.substring(5);
+          const firstUuidEnd = 36;
+          if (withoutPrefix.length < firstUuidEnd + 1 + 36) return [];
+          return [
+            withoutPrefix.substring(0, firstUuidEnd),
+            withoutPrefix.substring(firstUuidEnd + 1)
+          ];
+        };
+        
+        const team1Players = parseTeamId(match.team1Id);
+        const team2Players = parseTeamId(match.team2Id);
+        
+        // If this player was on team 1, team 2 players are opponents
+        if (team1Players.includes(player.id)) {
+          allOpponents.push(...team2Players);
+        }
+        // If this player was on team 2, team 1 players are opponents
+        else if (team2Players.includes(player.id)) {
+          allOpponents.push(...team1Players);
+        }
+      });
+    });
+    
+    if (allOpponents.length === 0) return 0;
+    
+    // Calculate average score of all opponents
+    const opponentScores = allOpponents.map(opponentId => {
+      const opponent = currentTournament.players[opponentId];
       return opponent ? opponent.currentScore : 0;
     });
     
