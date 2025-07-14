@@ -135,13 +135,9 @@ This document outlines the incremental development phases for the Spikeball Tour
 **Goal**: Polish the interface and improve usability
 
 ### Checklist
-- [ ] Create PreviousRounds collapsible component
-- [ ] Add match history display for each round
-- [ ] Implement advanced leaderboard features (sortable columns)
-- [ ] Add player detail views (statistics, history)
-- [ ] Create tournament progress indicators
-- [ ] Implement undo/edit functionality for scores
-- [ ] Add confirmation dialogs for destructive actions
+- [x] Create PreviousRounds collapsible component
+- [x] Add match history display for each round
+- [x] Implement undo/edit functionality for scores (current round only)
 - [ ] Improve mobile responsive design
 - [ ] Add loading states and error handling
 - [ ] Create comprehensive input validation with user-friendly error messages

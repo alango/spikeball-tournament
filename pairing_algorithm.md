@@ -47,7 +47,7 @@ Each round, groups are assigned as follows:
 2. Create groups - Using the fixed calculated group sizes (determined once at tournament start and kept constant throughout), separate the remaining field into the groups for that round. To do this, take the first group size and take that number of the highest ranked players. Continue until all groups have been created.
 3. For each group, create match-ups with the "Creating Pairs" algorithm.
 
-## Creating Teams and Matches
+## Creating Teams and Matches ##
 For each group of 8 or 12 players:
 1. Generate all possible sets of teams.
 2. Choose the 1 that has the fewest number of repeat partners.

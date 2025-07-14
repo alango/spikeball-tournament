@@ -13,6 +13,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
   const [team1Score, setTeam1Score] = useState(match.team1Score?.toString() || '');
   const [team2Score, setTeam2Score] = useState(match.team2Score?.toString() || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   if (!currentTournament) return null;
 
@@ -96,6 +97,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
       const score2 = parseInt(team2Score);
       
       await updateMatchScore(match.id, score1, score2);
+      setIsEditing(false); // Exit edit mode after successful update
     } catch (error) {
       console.error('Error updating match score:', error);
       alert('Failed to update match score. Please try again.');
@@ -104,7 +106,21 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
     }
   };
 
-  const canSubmit = team1Score !== '' && team2Score !== '' && !isSubmitting && !match.isCompleted;
+  const handleEdit = () => {
+    setIsEditing(true);
+    // Reset to current match scores when entering edit mode
+    setTeam1Score(match.team1Score?.toString() || '');
+    setTeam2Score(match.team2Score?.toString() || '');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    // Reset to current match scores when canceling
+    setTeam1Score(match.team1Score?.toString() || '');
+    setTeam2Score(match.team2Score?.toString() || '');
+  };
+
+  const canSubmit = team1Score !== '' && team2Score !== '' && !isSubmitting && (!match.isCompleted || isEditing);
 
   // Calculate points preview for bonus system
   const calculatePointsPreview = (team1Score: number, team2Score: number) => {
@@ -141,7 +157,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
     }
   };
 
-  const showPointsPreview = team1Score !== '' && team2Score !== '' && !match.isCompleted && currentTournament.configuration.bonusPointsEnabled;
+  const showPointsPreview = team1Score !== '' && team2Score !== '' && (!match.isCompleted || isEditing) && currentTournament.configuration.bonusPointsEnabled;
   let pointsPreview = null;
   
   if (showPointsPreview) {
@@ -179,7 +195,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
                 onChange={(e) => handleScoreChange('team1', e.target.value)}
                 placeholder="0"
                 className="text-center"
-                disabled={match.isCompleted}
+                disabled={match.isCompleted && !isEditing}
                 maxLength={2}
               />
             </div>
@@ -208,7 +224,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
                 onChange={(e) => handleScoreChange('team2', e.target.value)}
                 placeholder="0"
                 className="text-center"
-                disabled={match.isCompleted}
+                disabled={match.isCompleted && !isEditing}
                 maxLength={2}
               />
             </div>
@@ -221,22 +237,35 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
         </div>
       </div>
       
-      {/* Submit Button */}
-      {!match.isCompleted && (
+      {/* Submit Button - for new matches or during editing */}
+      {(!match.isCompleted || isEditing) && (
         <div className="mt-4 pt-3 border-t">
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            size="sm"
-            className="w-full"
-          >
-            {isSubmitting ? 'Saving...' : 'Save Score'}
-          </Button>
+          <div className="flex space-x-2">
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              size="sm"
+              className="flex-1"
+            >
+              {isSubmitting ? 'Saving...' : isEditing ? 'Update Score' : 'Save Score'}
+            </Button>
+            {isEditing && (
+              <Button
+                onClick={handleCancelEdit}
+                disabled={isSubmitting}
+                size="sm"
+                variant="secondary"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
         </div>
       )}
       
       {/* Completed Match Display */}
-      {match.isCompleted && (
+      {match.isCompleted && !isEditing && (
         <div className="mt-4 pt-3 border-t border-green-200 bg-green-50 rounded p-2">
           <div className="text-center text-sm text-green-800">
             Final Score: {match.team1Score} - {match.team2Score}
@@ -245,6 +274,15 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
                 Points: {calculatePointsPreview(match.team1Score!, match.team2Score!).team1Points.toFixed(1)} - {calculatePointsPreview(match.team1Score!, match.team2Score!).team2Points.toFixed(1)}
               </div>
             )}
+          </div>
+          <div className="mt-3 text-center">
+            <Button
+              onClick={handleEdit}
+              size="sm"
+              variant="secondary"
+            >
+              Edit Score
+            </Button>
           </div>
         </div>
       )}
