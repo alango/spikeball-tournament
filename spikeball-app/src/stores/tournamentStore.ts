@@ -405,6 +405,17 @@ const useTournamentStore = create<TournamentStore>()(
           return;
         }
 
+        // Update player bye histories for this completed round
+        const updatedPlayers = { ...state.currentTournament.players };
+        currentRound.byes.forEach(playerId => {
+          if (updatedPlayers[playerId]) {
+            updatedPlayers[playerId] = {
+              ...updatedPlayers[playerId],
+              byeHistory: [...updatedPlayers[playerId].byeHistory, currentRound.roundNumber]
+            };
+          }
+        });
+
         // Mark the round as completed
         const updatedRounds = state.currentTournament.rounds.map(round =>
           round.roundNumber === state.currentTournament!.currentRound
@@ -412,14 +423,13 @@ const useTournamentStore = create<TournamentStore>()(
             : round
         );
 
-        // Advance to next round
-        const nextRoundNumber = state.currentTournament.currentRound + 1;
-
         set({
           currentTournament: {
             ...state.currentTournament,
+            players: updatedPlayers,
             rounds: updatedRounds,
-            currentRound: nextRoundNumber,
+            // Keep the original behavior - advance to next round when completed
+            currentRound: state.currentTournament.currentRound + 1,
           },
         });
       },
