@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, Button } from '../ui';
 import useTournamentStore from '../../stores/tournamentStore';
-import type { Round, Match } from '../../types';
+import type { Round, Match, Tournament, TournamentConfig } from '../../types';
 
 export function PreviousRounds() {
   const { currentTournament } = useTournamentStore();
@@ -83,7 +83,7 @@ interface RoundSummaryProps {
   round: Round;
   isExpanded: boolean;
   onToggle: () => void;
-  tournament: any; // Using any for now to avoid circular type issues
+  tournament: Tournament;
 }
 
 function RoundSummary({ round, isExpanded, onToggle, tournament }: RoundSummaryProps) {
@@ -160,7 +160,7 @@ function RoundSummary({ round, isExpanded, onToggle, tournament }: RoundSummaryP
 interface MatchHistoryProps {
   match: Match;
   matchNumber: number;
-  tournament: any;
+  tournament: Tournament;
 }
 
 function MatchHistory({ match, matchNumber, tournament }: MatchHistoryProps) {
@@ -254,7 +254,7 @@ function MatchHistory({ match, matchNumber, tournament }: MatchHistoryProps) {
 }
 
 // Helper function to calculate points (same logic as in store)
-function calculateMatchPoints(team1Score: number, team2Score: number, config: any) {
+function calculateMatchPoints(team1Score: number, team2Score: number, config: TournamentConfig) {
   if (config.scoringSystem === 'win-loss') {
     const team1Won = team1Score > team2Score;
     return {

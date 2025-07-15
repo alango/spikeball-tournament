@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Card, Button } from '../ui';
 import useTournamentStore from '../../stores/tournamentStore';
-import type { Player } from '../../types';
+import type { Player, Tournament } from '../../types';
 
 export function Leaderboard() {
   const { currentTournament } = useTournamentStore();
@@ -236,7 +236,7 @@ interface PlayerTableRowProps {
   strengthOfSchedule: number;
   teammates: string[];
   opponents: string[];
-  currentTournament: any; // Using any for now to avoid circular type issues
+  currentTournament: Tournament;
 }
 
 function PlayerTableRow({ 
