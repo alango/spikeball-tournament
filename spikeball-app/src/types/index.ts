@@ -52,6 +52,7 @@ export interface TournamentConfig {
   maxPlayers: number;
   scoringSystem: 'win-loss' | 'win-loss-bonus';
   bonusPointsEnabled: boolean;
+  byePoints: number;
 }
 
 export interface GroupConfiguration {

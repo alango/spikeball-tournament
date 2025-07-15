@@ -53,6 +53,7 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
     name: '',
     description: '',
     bonusPointsEnabled: false,
+    byePoints: '3',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -67,6 +68,11 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
     
     if (formData.description.length > 500) {
       newErrors.description = 'Description must be 500 characters or less';
+    }
+    
+    const byePointsNum = Number(formData.byePoints);
+    if (isNaN(byePointsNum) || byePointsNum < 0 || byePointsNum > 10) {
+      newErrors.byePoints = 'Bye points must be a number between 0 and 10';
     }
     
     setErrors(newErrors);
@@ -84,6 +90,7 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
       maxPlayers: 30,
       scoringSystem: formData.bonusPointsEnabled ? 'win-loss-bonus' : 'win-loss',
       bonusPointsEnabled: formData.bonusPointsEnabled,
+      byePoints: Number(formData.byePoints),
     };
 
     onCreateTournament({
@@ -165,6 +172,26 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
               </p>
             </div>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Bye Points
+          </label>
+          <Input
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            value={formData.byePoints}
+            onChange={(e) => setFormData(prev => ({ ...prev, byePoints: e.target.value }))}
+            error={errors.byePoints}
+            placeholder="3"
+            helpText="Points awarded to players who have a bye each round"
+          />
+          <p className="text-sm text-gray-500">
+            Players with byes will receive this many points for the round. Default is 3 points (equivalent to a win).
+          </p>
         </div>
 
         <div className="flex justify-end">

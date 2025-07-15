@@ -324,12 +324,13 @@ const useTournamentStore = create<TournamentStore>()(
           });
         });
 
-        // Update player bye histories for this completed round
+        // Update player bye histories for this completed round and award bye points
         currentRound.byes.forEach(playerId => {
           if (updatedPlayers[playerId]) {
             updatedPlayers[playerId] = {
               ...updatedPlayers[playerId],
-              byeHistory: [...updatedPlayers[playerId].byeHistory, currentRound.roundNumber]
+              byeHistory: [...updatedPlayers[playerId].byeHistory, currentRound.roundNumber],
+              currentScore: updatedPlayers[playerId].currentScore + state.currentTournament!.configuration.byePoints
             };
           }
         });
@@ -404,6 +405,16 @@ const useTournamentStore = create<TournamentStore>()(
     {
       name: 'spikeball-tournament-state',
       partialize: (state) => ({ currentTournament: state.currentTournament }),
+      migrate: (persistedState: { currentTournament?: Tournament }) => {
+        // Add byePoints field for existing tournaments (defaults to 3)
+        if (persistedState.currentTournament && 
+            persistedState.currentTournament.configuration &&
+            !('byePoints' in persistedState.currentTournament.configuration)) {
+          (persistedState.currentTournament.configuration as TournamentConfig).byePoints = 3;
+        }
+        return persistedState;
+      },
+      version: 1,
     }
   )
 );
