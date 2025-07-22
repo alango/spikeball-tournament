@@ -157,7 +157,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
     }
   };
 
-  const showPointsPreview = team1Score !== '' && team2Score !== '' && (!match.isCompleted || isEditing) && currentTournament.configuration.bonusPointsEnabled;
+  const showPointsPreview = team1Score !== '' && team2Score !== '' && currentTournament.configuration.bonusPointsEnabled;
   let pointsPreview = null;
   
   if (showPointsPreview) {
@@ -264,26 +264,16 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
         </div>
       )}
       
-      {/* Completed Match Display */}
+      {/* Edit Button for Completed Matches */}
       {match.isCompleted && !isEditing && (
-        <div className="mt-4 pt-3 border-t border-green-200 bg-green-50 rounded p-2">
-          <div className="text-center text-sm text-green-800">
-            Final Score: {match.team1Score} - {match.team2Score}
-            {currentTournament.configuration.bonusPointsEnabled && (
-              <div className="text-xs mt-1">
-                Points: {calculatePointsPreview(match.team1Score!, match.team2Score!).team1Points.toFixed(1)} - {calculatePointsPreview(match.team1Score!, match.team2Score!).team2Points.toFixed(1)}
-              </div>
-            )}
-          </div>
-          <div className="mt-3 text-center">
-            <Button
-              onClick={handleEdit}
-              size="sm"
-              variant="secondary"
-            >
-              Edit Score
-            </Button>
-          </div>
+        <div className="mt-3 pt-2 border-t text-center">
+          <Button
+            onClick={handleEdit}
+            size="sm"
+            variant="secondary"
+          >
+            Edit Score
+          </Button>
         </div>
       )}
     </div>
