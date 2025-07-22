@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import useTournamentStore from '../../stores/tournamentStore';
 import { Leaderboard } from './Leaderboard';
 import { CurrentRound } from './CurrentRound';
@@ -5,6 +6,7 @@ import { PreviousRounds } from './PreviousRounds';
 
 export function TournamentDashboard() {
   const { currentTournament } = useTournamentStore();
+  const [isPreviousRoundsCollapsed, setIsPreviousRoundsCollapsed] = useState(true);
 
   if (!currentTournament) {
     return (
@@ -64,22 +66,77 @@ export function TournamentDashboard() {
       </div>
 
       {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Leaderboard */}
-        <div className="lg:col-span-1">
-          <Leaderboard />
+      {isPreviousRoundsCollapsed ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Collapsed Layout: 2 main columns with sidebar */}
+          <div className="lg:col-span-1">
+            <Leaderboard />
+          </div>
+          
+          <div className="lg:col-span-1 lg:flex lg:gap-4">
+            <CollapsedPreviousRounds onExpand={() => setIsPreviousRoundsCollapsed(false)} />
+            <div className="flex-1">
+              <CurrentRound />
+            </div>
+          </div>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Expanded Layout: 3 equal columns */}
+          <div className="lg:col-span-1">
+            <Leaderboard />
+          </div>
+          
+          <div className="lg:col-span-1">
+            <PreviousRounds onCollapse={() => setIsPreviousRoundsCollapsed(true)} />
+          </div>
+          
+          <div className="lg:col-span-1">
+            <CurrentRound />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-        {/* Previous Rounds */}
-        <div className="lg:col-span-1">
-          <PreviousRounds />
-        </div>
+interface CollapsedPreviousRoundsProps {
+  onExpand: () => void;
+}
 
-        {/* Current Round */}
-        <div className="lg:col-span-1">
-          <CurrentRound />
+function CollapsedPreviousRounds({ onExpand }: CollapsedPreviousRoundsProps) {
+  const { currentTournament } = useTournamentStore();
+  
+  if (!currentTournament) return null;
+  
+  const completedRounds = currentTournament.rounds.filter(round => round.isCompleted);
+  
+  return (
+    <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-center lg:w-10 lg:bg-gray-50 lg:rounded-lg lg:py-4">
+      <button
+        onClick={onExpand}
+        className="flex flex-col items-center justify-center space-y-3 p-1 hover:bg-gray-100 rounded-md transition-colors group h-full"
+        title="Expand Previous Rounds"
+      >
+        {/* Round count indicator */}
+        {completedRounds.length > 0 && (
+          <div className="text-xs bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+            {completedRounds.length}
+          </div>
+        )}
+        
+        {/* Rotated "Previous Rounds" text */}
+        <div className="text-xs font-medium text-gray-600 group-hover:text-gray-900 transform -rotate-90 whitespace-nowrap origin-center flex-1 flex items-center justify-center">
+          Rounds
         </div>
-      </div>
+        
+        {/* Expand icon */}
+        <div className="text-gray-600 group-hover:text-gray-900">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </button>
     </div>
   );
 }

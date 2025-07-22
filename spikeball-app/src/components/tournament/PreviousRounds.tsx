@@ -3,7 +3,11 @@ import { Card, Button } from '../ui';
 import useTournamentStore from '../../stores/tournamentStore';
 import type { Round, Match, Tournament, TournamentConfig } from '../../types';
 
-export function PreviousRounds() {
+interface PreviousRoundsProps {
+  onCollapse?: () => void;
+}
+
+export function PreviousRounds({ onCollapse }: PreviousRoundsProps) {
   const { currentTournament } = useTournamentStore();
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
 
@@ -15,10 +19,28 @@ export function PreviousRounds() {
 
   if (completedRounds.length === 0) {
     return (
-      <Card title="Previous Rounds">
-        <div className="text-center text-gray-500 py-8">
-          <p>No completed rounds yet</p>
-          <p className="text-sm mt-2">Complete your first round to see history here</p>
+      <Card>
+        <div className="space-y-4">
+          {/* Custom header with collapse button */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Previous Rounds</h2>
+            {onCollapse && (
+              <button
+                onClick={onCollapse}
+                className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                title="Collapse Previous Rounds"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          <div className="text-center text-gray-500 py-8">
+            <p>No completed rounds yet</p>
+            <p className="text-sm mt-2">Complete your first round to see history here</p>
+          </div>
         </div>
       </Card>
     );
@@ -43,8 +65,24 @@ export function PreviousRounds() {
   };
 
   return (
-    <Card title="Previous Rounds">
+    <Card>
       <div className="space-y-4">
+        {/* Custom header with collapse button */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Previous Rounds</h2>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              title="Collapse Previous Rounds"
+            >
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+        </div>
+        
         {/* Control buttons */}
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">

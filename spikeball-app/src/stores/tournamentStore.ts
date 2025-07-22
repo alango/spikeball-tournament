@@ -458,7 +458,9 @@ const useTournamentStore = create<TournamentStore>()(
     }),
     {
       name: 'spikeball-tournament-state',
-      partialize: (state) => ({ currentTournament: state.currentTournament }),
+      partialize: (state) => ({ 
+        currentTournament: state.currentTournament || undefined 
+      }),
       migrate: (persistedState: unknown) => {
         // Add byePoints field for existing tournaments (defaults to 3)
         const state = persistedState as { currentTournament?: Tournament };
