@@ -6,7 +6,7 @@ import {
   countRepeatPartners,
   generateRound,
 } from './pairingAlgorithm';
-import type { Player } from '../types';
+import type { Player, Tournament } from '../types';
 
 // Test helper to create a player
 function createTestPlayer(id: string, name: string, score: number = 0, byes: number[] = [], teammates: string[] = [], opponents: string[] = []): Player {
@@ -20,6 +20,38 @@ function createTestPlayer(id: string, name: string, score: number = 0, byes: num
     previousTeammates: teammates,
     previousOpponents: opponents,
     byeHistory: byes,
+  };
+}
+
+// Test helper to create a minimal tournament
+function createTestTournament(players: Player[]): Tournament {
+  const playersRecord: Record<string, Player> = {};
+  players.forEach(player => {
+    playersRecord[player.id] = player;
+  });
+  
+  return {
+    id: 'test-tournament',
+    name: 'Test Tournament',
+    players: playersRecord,
+    rounds: [],
+    currentRound: 1,
+    isStarted: true,
+    isCompleted: false,
+    configuration: {
+      maxPlayers: 30,
+      scoringSystem: 'win-loss',
+      bonusPointsEnabled: false,
+      byePoints: 3,
+    },
+    groupConfiguration: {
+      totalPlayers: players.length,
+      byes: 0,
+      activePlayersPerRound: players.length,
+      groupsOf8: 0,
+      groupsOf12: 0,
+      totalGroups: 0,
+    },
   };
 }
 
@@ -67,7 +99,8 @@ describe('Pairing Algorithm', () => {
         createTestPlayer('8', 'Henry', 0),
       ];
       
-      const groups = createGroups(players, 1, 0);
+      const tournament = createTestTournament(players);
+      const groups = createGroups(players, 1, 0, tournament);
       expect(groups).toHaveLength(1);
       expect(groups[0]).toHaveLength(8);
       
@@ -149,7 +182,8 @@ describe('Pairing Algorithm', () => {
         createTestPlayer('8', 'Henry', 0),
       ];
       
-      const result = generateRound(players, 1);
+      const tournament = createTestTournament(players);
+      const result = generateRound(players, 1, tournament);
       
       expect(result.success).toBe(true);
       expect(result.round.roundNumber).toBe(1);
@@ -163,7 +197,8 @@ describe('Pairing Algorithm', () => {
         createTestPlayer(`${i + 1}`, `Player${i + 1}`, Math.floor(Math.random() * 20))
       );
       
-      const result = generateRound(players, 1);
+      const tournament = createTestTournament(players);
+      const result = generateRound(players, 1, tournament);
       
       expect(result.success).toBe(true);
       expect(result.byes.length).toBe(1); // 9 % 4 = 1 bye
@@ -179,7 +214,8 @@ describe('Pairing Algorithm', () => {
           createTestPlayer(`${i + 1}`, `Player${i + 1}`, Math.floor(Math.random() * 20))
         );
         
-        const result = generateRound(players, 1);
+        const tournament = createTestTournament(players);
+      const result = generateRound(players, 1, tournament);
         expect(result.success).toBe(true);
         expect(result.round.matches.length).toBeGreaterThan(0);
       });

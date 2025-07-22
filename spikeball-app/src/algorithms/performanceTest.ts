@@ -1,5 +1,5 @@
 import { generateRound } from './pairingAlgorithm';
-import type { Player } from '../types';
+import type { Player, Tournament } from '../types';
 
 // Create test players
 function createTestPlayers(count: number): Player[] {
@@ -17,17 +17,50 @@ function createTestPlayers(count: number): Player[] {
   }));
 }
 
+// Create test tournament
+function createTestTournament(players: Player[]): Tournament {
+  const playersRecord: Record<string, Player> = {};
+  players.forEach(player => {
+    playersRecord[player.id] = player;
+  });
+  
+  return {
+    id: 'test-tournament',
+    name: 'Test Tournament',
+    players: playersRecord,
+    rounds: [],
+    currentRound: 1,
+    isStarted: true,
+    isCompleted: false,
+    configuration: {
+      maxPlayers: 30,
+      scoringSystem: 'win-loss',
+      bonusPointsEnabled: false,
+      byePoints: 3,
+    },
+    groupConfiguration: {
+      totalPlayers: players.length,
+      byes: 0,
+      activePlayersPerRound: players.length,
+      groupsOf8: 0,
+      groupsOf12: 0,
+      totalGroups: 0,
+    },
+  };
+}
+
 // Performance test function
 function performanceTest(playerCount: number, iterations: number = 10): void {
   console.log(`\n=== Performance Test: ${playerCount} players, ${iterations} iterations ===`);
   
   const players = createTestPlayers(playerCount);
+  const tournament = createTestTournament(players);
   const times: number[] = [];
   let successCount = 0;
   
   for (let i = 0; i < iterations; i++) {
     const startTime = performance.now();
-    const result = generateRound(players, i + 1);
+    const result = generateRound(players, i + 1, tournament);
     const endTime = performance.now();
     
     const executionTime = endTime - startTime;
@@ -51,7 +84,7 @@ function performanceTest(playerCount: number, iterations: number = 10): void {
   console.log(`  Max time: ${maxTime.toFixed(2)}ms`);
   
   if (successCount > 0) {
-    const lastSuccessfulResult = generateRound(players, 1);
+    const lastSuccessfulResult = generateRound(players, 1, tournament);
     if (lastSuccessfulResult.success) {
       console.log(`  Sample result: ${lastSuccessfulResult.round.matches.length} matches, ${lastSuccessfulResult.byes.length} byes`);
     }

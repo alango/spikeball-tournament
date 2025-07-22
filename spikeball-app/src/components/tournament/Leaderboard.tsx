@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Card, Button } from '../ui';
 import useTournamentStore from '../../stores/tournamentStore';
 import type { Player, Tournament } from '../../types';
@@ -7,36 +7,8 @@ export function Leaderboard() {
   const { currentTournament } = useTournamentStore();
   const [showDetailedStats, setShowDetailedStats] = useState(false);
 
-  const sortedPlayers = useMemo(() => {
-    if (!currentTournament) return [];
-
-    const players = Object.values(currentTournament.players);
-    
-    return players.sort((a, b) => {
-      // Primary sort: Total points (descending)
-      if (a.currentScore !== b.currentScore) {
-        return b.currentScore - a.currentScore;
-      }
-
-      // Secondary sort: Win percentage (descending)
-      const aWinPct = a.gamesPlayed > 0 ? a.wins / a.gamesPlayed : 0;
-      const bWinPct = b.gamesPlayed > 0 ? b.wins / b.gamesPlayed : 0;
-      if (aWinPct !== bWinPct) {
-        return bWinPct - aWinPct;
-      }
-
-      // Tertiary sort: Games played (ascending - fewer games is better with same record)
-      if (a.gamesPlayed !== b.gamesPlayed) {
-        return a.gamesPlayed - b.gamesPlayed;
-      }
-
-      // Final sort: Alphabetical by name
-      return a.name.localeCompare(b.name);
-    });
-  }, [currentTournament]);
-
   // Calculate strength of schedule for a player
-  const calculateStrengthOfSchedule = (player: Player) => {
+  const calculateStrengthOfSchedule = useCallback((player: Player) => {
     // Alternative approach: calculate SOS from completed match history
     if (!currentTournament) return 0;
     
@@ -83,7 +55,30 @@ export function Leaderboard() {
     });
     
     return opponentScores.reduce((sum, score) => sum + score, 0) / opponentScores.length;
-  };
+  }, [currentTournament]);
+
+  const sortedPlayers = useMemo(() => {
+    if (!currentTournament) return [];
+
+    const players = Object.values(currentTournament.players);
+    
+    return players.sort((a, b) => {
+      // Primary sort: Total points (descending)
+      if (a.currentScore !== b.currentScore) {
+        return b.currentScore - a.currentScore;
+      }
+
+      // Secondary sort: Strength of schedule (descending)
+      const aStrengthOfSchedule = calculateStrengthOfSchedule(a);
+      const bStrengthOfSchedule = calculateStrengthOfSchedule(b);
+      if (aStrengthOfSchedule !== bStrengthOfSchedule) {
+        return bStrengthOfSchedule - aStrengthOfSchedule;
+      }
+
+      // Final sort: Alphabetical by name
+      return a.name.localeCompare(b.name);
+    });
+  }, [currentTournament, calculateStrengthOfSchedule]);
 
   // Get teammates for a player from completed matches
   const getPlayerTeammates = (player: Player) => {

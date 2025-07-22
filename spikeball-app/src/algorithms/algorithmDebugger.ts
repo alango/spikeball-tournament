@@ -1,4 +1,4 @@
-import type { Player } from '../types';
+import type { Player, Tournament } from '../types';
 import { generateRound } from './pairingAlgorithm';
 
 export interface AlgorithmDebugInfo {
@@ -48,8 +48,8 @@ export interface AlgorithmDebugInfo {
   };
 }
 
-export function debugRoundGeneration(players: Player[], roundNumber: number): AlgorithmDebugInfo {
-  const result = generateRound(players, roundNumber);
+export function debugRoundGeneration(players: Player[], roundNumber: number, tournament: Tournament): AlgorithmDebugInfo {
+  const result = generateRound(players, roundNumber, tournament);
   
   if (!result.success) {
     throw new Error(`Round generation failed: ${result.errors?.join(', ')}`);

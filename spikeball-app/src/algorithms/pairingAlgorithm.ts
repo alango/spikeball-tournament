@@ -1,4 +1,4 @@
-import type { Player, Team, Match, Round } from '../types';
+import type { Player, Team, Match, Round, Tournament } from '../types';
 import { calculateGroups } from './groupCalculation';
 
 export interface TeamGenerationResult {
@@ -44,15 +44,68 @@ export function assignByes(players: Player[], byeCount: number): { byes: string[
   return { byes, remainingPlayers };
 }
 
+// Helper function to calculate strength of schedule for a player
+function calculateStrengthOfSchedule(player: Player, tournament: Tournament): number {
+  const completedRounds = tournament.rounds.filter(round => round.isCompleted);
+  const allOpponents: string[] = [];
+  
+  // Find all opponents this player has faced in completed matches
+  completedRounds.forEach(round => {
+    round.matches.forEach(match => {
+      if (!match.isCompleted) return;
+      
+      // Parse team IDs to get player IDs
+      const parseTeamId = (teamId: string) => {
+        if (!teamId.startsWith('team-')) return [];
+        const withoutPrefix = teamId.substring(5);
+        const firstUuidEnd = 36;
+        if (withoutPrefix.length < firstUuidEnd + 1 + 36) return [];
+        return [
+          withoutPrefix.substring(0, firstUuidEnd),
+          withoutPrefix.substring(firstUuidEnd + 1)
+        ];
+      };
+      
+      const team1Players = parseTeamId(match.team1Id);
+      const team2Players = parseTeamId(match.team2Id);
+      
+      // If this player was on team 1, team 2 players are opponents
+      if (team1Players.includes(player.id)) {
+        allOpponents.push(...team2Players);
+      }
+      // If this player was on team 2, team 1 players are opponents
+      else if (team2Players.includes(player.id)) {
+        allOpponents.push(...team1Players);
+      }
+    });
+  });
+  
+  if (allOpponents.length === 0) return 0;
+  
+  // Calculate average score of all opponents
+  const opponentScores = allOpponents.map(opponentId => {
+    const opponent = tournament.players[opponentId];
+    return opponent ? opponent.currentScore : 0;
+  });
+  
+  return opponentScores.reduce((sum, score) => sum + score, 0) / opponentScores.length;
+}
+
 // Create groups from remaining players based on current ranking
-export function createGroups(players: Player[], groupsOf8: number, groupsOf12: number): Player[][] {
-  // Sort players by current ranking (total score descending)
+export function createGroups(players: Player[], groupsOf8: number, groupsOf12: number, tournament: Tournament): Player[][] {
+  // Sort players by current ranking (total score descending, then strength of schedule descending)
   const sortedPlayers = [...players].sort((a, b) => {
     if (a.currentScore !== b.currentScore) {
       return b.currentScore - a.currentScore;
     }
-    // TODO: Add strength of schedule tiebreaker
-    return 0;
+    // Secondary sort: Strength of schedule (descending)
+    const aStrengthOfSchedule = calculateStrengthOfSchedule(a, tournament);
+    const bStrengthOfSchedule = calculateStrengthOfSchedule(b, tournament);
+    if (aStrengthOfSchedule !== bStrengthOfSchedule) {
+      return bStrengthOfSchedule - aStrengthOfSchedule;
+    }
+    // Final sort: Alphabetical by name
+    return a.name.localeCompare(b.name);
   });
 
   const groups: Player[][] = [];
@@ -292,7 +345,7 @@ export function findBestMatchSet(matchSets: Match[][], teams: Team[], players: P
 }
 
 // Main pairing algorithm - generate a complete round
-export function generateRound(players: Player[], roundNumber: number): PairingResult {
+export function generateRound(players: Player[], roundNumber: number, tournament: Tournament): PairingResult {
   try {
     const playerCount = players.length;
     const groupConfig = calculateGroups(playerCount, true);
@@ -301,7 +354,7 @@ export function generateRound(players: Player[], roundNumber: number): PairingRe
     const { byes, remainingPlayers } = assignByes(players, groupConfig.byes);
     
     // Step 2: Create groups
-    const groups = createGroups(remainingPlayers, groupConfig.groupsOf8, groupConfig.groupsOf12);
+    const groups = createGroups(remainingPlayers, groupConfig.groupsOf8, groupConfig.groupsOf12, tournament);
     
     // Step 3: Generate matches for each group
     const allMatches: Match[] = [];

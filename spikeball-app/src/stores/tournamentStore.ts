@@ -141,7 +141,7 @@ const useTournamentStore = create<TournamentStore>()(
         const players = Object.values(state.currentTournament.players);
         const roundNumber = state.currentTournament.currentRound;
         
-        const result = generateRound(players, roundNumber);
+        const result = generateRound(players, roundNumber, state.currentTournament);
         
         if (result.success) {
           set({
@@ -363,13 +363,67 @@ const useTournamentStore = create<TournamentStore>()(
         if (!state.currentTournament) return [];
 
         const players = Object.values(state.currentTournament.players);
+        
+        // Helper function to calculate strength of schedule
+        const calculateStrengthOfSchedule = (player: Player) => {
+          const completedRounds = state.currentTournament!.rounds.filter(round => round.isCompleted);
+          const allOpponents: string[] = [];
+          
+          // Find all opponents this player has faced in completed matches
+          completedRounds.forEach(round => {
+            round.matches.forEach(match => {
+              if (!match.isCompleted) return;
+              
+              // Parse team IDs to get player IDs
+              const parseTeamId = (teamId: string) => {
+                if (!teamId.startsWith('team-')) return [];
+                const withoutPrefix = teamId.substring(5);
+                const firstUuidEnd = 36;
+                if (withoutPrefix.length < firstUuidEnd + 1 + 36) return [];
+                return [
+                  withoutPrefix.substring(0, firstUuidEnd),
+                  withoutPrefix.substring(firstUuidEnd + 1)
+                ];
+              };
+              
+              const team1Players = parseTeamId(match.team1Id);
+              const team2Players = parseTeamId(match.team2Id);
+              
+              // If this player was on team 1, team 2 players are opponents
+              if (team1Players.includes(player.id)) {
+                allOpponents.push(...team2Players);
+              }
+              // If this player was on team 2, team 1 players are opponents
+              else if (team2Players.includes(player.id)) {
+                allOpponents.push(...team1Players);
+              }
+            });
+          });
+          
+          if (allOpponents.length === 0) return 0;
+          
+          // Calculate average score of all opponents
+          const opponentScores = allOpponents.map(opponentId => {
+            const opponent = state.currentTournament!.players[opponentId];
+            return opponent ? opponent.currentScore : 0;
+          });
+          
+          return opponentScores.reduce((sum, score) => sum + score, 0) / opponentScores.length;
+        };
+        
         return players.sort((a, b) => {
-          // Sort by total points, then by strength of schedule
+          // Primary sort: Total points (descending)
           if (a.currentScore !== b.currentScore) {
             return b.currentScore - a.currentScore;
           }
-          // TODO: Implement strength of schedule calculation
-          return 0;
+          // Secondary sort: Strength of schedule (descending)
+          const aStrengthOfSchedule = calculateStrengthOfSchedule(a);
+          const bStrengthOfSchedule = calculateStrengthOfSchedule(b);
+          if (aStrengthOfSchedule !== bStrengthOfSchedule) {
+            return bStrengthOfSchedule - aStrengthOfSchedule;
+          }
+          // Final sort: Alphabetical by name
+          return a.name.localeCompare(b.name);
         });
       },
 
@@ -405,14 +459,15 @@ const useTournamentStore = create<TournamentStore>()(
     {
       name: 'spikeball-tournament-state',
       partialize: (state) => ({ currentTournament: state.currentTournament }),
-      migrate: (persistedState: { currentTournament?: Tournament }) => {
+      migrate: (persistedState: unknown) => {
         // Add byePoints field for existing tournaments (defaults to 3)
-        if (persistedState.currentTournament && 
-            persistedState.currentTournament.configuration &&
-            !('byePoints' in persistedState.currentTournament.configuration)) {
-          (persistedState.currentTournament.configuration as TournamentConfig).byePoints = 3;
+        const state = persistedState as { currentTournament?: Tournament };
+        if (state.currentTournament && 
+            state.currentTournament.configuration &&
+            !('byePoints' in state.currentTournament.configuration)) {
+          (state.currentTournament.configuration as TournamentConfig).byePoints = 3;
         }
-        return persistedState;
+        return state;
       },
       version: 1,
     }
