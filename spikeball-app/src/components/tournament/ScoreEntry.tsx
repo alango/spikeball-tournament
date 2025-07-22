@@ -169,8 +169,8 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-      <div className="flex items-center justify-between mb-4">
+    <div className="border border-gray-200 rounded-lg p-3 bg-white">
+      <div className="flex items-center justify-between mb-2">
         <div className="text-sm font-medium text-gray-700">
           Match {matchNumber}
         </div>
@@ -180,7 +180,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
       </div>
       
       {/* Team 1 */}
-      <div className="space-y-3">
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="text-sm font-medium text-gray-900">
@@ -207,7 +207,7 @@ export function ScoreEntry({ match, matchNumber }: ScoreEntryProps) {
           </div>
         </div>
         
-        <div className="text-center text-xs text-gray-400 py-1">vs</div>
+        <div className="text-center text-xs text-gray-400">vs</div>
         
         {/* Team 2 */}
         <div className="flex items-center justify-between">
