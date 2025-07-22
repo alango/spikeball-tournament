@@ -17,50 +17,42 @@ export function TournamentDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Tournament Header */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+    <div className="space-y-4">
+      {/* Tournament Header - Single Row */}
+      <div className="bg-white rounded-lg shadow-sm px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <h1 className="text-lg font-bold text-gray-900">
               {currentTournament.name}
             </h1>
             {currentTournament.description && (
-              <p className="text-gray-600 mt-1">{currentTournament.description}</p>
+              <span className="text-gray-600 text-sm">
+                {currentTournament.description}
+              </span>
             )}
           </div>
-          <div className="text-right">
-            <div className="text-sm text-gray-500">Current Round</div>
-            <div className="text-2xl font-bold text-blue-600">
-              {currentTournament.currentRound}
+          
+          <div className="flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-500">Round</span>
+              <span className="font-bold text-blue-600">{currentTournament.currentRound}</span>
             </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-          <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
-              {Object.keys(currentTournament.players).length}
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-500">Players</span>
+              <span className="font-semibold text-gray-900">{Object.keys(currentTournament.players).length}</span>
             </div>
-            <div className="text-sm text-gray-500">Players</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
-              {currentTournament.rounds.filter(round => round.isCompleted).length}
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-500">Completed</span>
+              <span className="font-semibold text-gray-900">{currentTournament.rounds.filter(round => round.isCompleted).length}</span>
             </div>
-            <div className="text-sm text-gray-500">Rounds Played</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
-              {currentTournament.groupConfiguration.groupsOf8 + currentTournament.groupConfiguration.groupsOf12}
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-500">Groups</span>
+              <span className="font-semibold text-gray-900">{currentTournament.groupConfiguration.groupsOf8 + currentTournament.groupConfiguration.groupsOf12}</span>
             </div>
-            <div className="text-sm text-gray-500">Groups</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
-              {currentTournament.groupConfiguration.byes}
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-500">Byes</span>
+              <span className="font-semibold text-gray-900">{currentTournament.groupConfiguration.byes}</span>
             </div>
-            <div className="text-sm text-gray-500">Byes per Round</div>
           </div>
         </div>
       </div>
