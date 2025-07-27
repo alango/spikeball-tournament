@@ -46,10 +46,6 @@ export function TournamentDashboard() {
               <span className="font-semibold text-gray-900">{currentTournament.rounds.filter(round => round.isCompleted).length}</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="text-gray-500">Groups</span>
-              <span className="font-semibold text-gray-900">{currentTournament.groupConfiguration.groupsOf8 + currentTournament.groupConfiguration.groupsOf12}</span>
-            </div>
-            <div className="flex items-center space-x-1">
               <span className="text-gray-500">Byes</span>
               <span className="font-semibold text-gray-900">{currentTournament.groupConfiguration.byes}</span>
             </div>

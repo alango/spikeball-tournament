@@ -42,6 +42,7 @@ function createTestTournament(players: Player[]): Tournament {
       totalPlayers: players.length,
       byes: 0,
       activePlayersPerRound: players.length,
+      groupsOf4: 0,
       groupsOf8: 0,
       groupsOf12: 0,
       totalGroups: 0,

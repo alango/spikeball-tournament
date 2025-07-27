@@ -92,7 +92,7 @@ function calculateStrengthOfSchedule(player: Player, tournament: Tournament): nu
 }
 
 // Create groups from remaining players based on current ranking
-export function createGroups(players: Player[], groupsOf8: number, groupsOf12: number, tournament: Tournament): Player[][] {
+export function createGroups(players: Player[], groupsOf4: number, groupsOf8: number, groupsOf12: number, tournament: Tournament): Player[][] {
   // Sort players by current ranking (total score descending, then strength of schedule descending)
   const sortedPlayers = [...players].sort((a, b) => {
     if (a.currentScore !== b.currentScore) {
@@ -111,7 +111,13 @@ export function createGroups(players: Player[], groupsOf8: number, groupsOf12: n
   const groups: Player[][] = [];
   let playerIndex = 0;
 
-  // Create 8-player groups first
+  // Create 4-player groups first
+  for (let i = 0; i < groupsOf4; i++) {
+    groups.push(sortedPlayers.slice(playerIndex, playerIndex + 4));
+    playerIndex += 4;
+  }
+
+  // Create 8-player groups
   for (let i = 0; i < groupsOf8; i++) {
     groups.push(sortedPlayers.slice(playerIndex, playerIndex + 8));
     playerIndex += 8;
@@ -348,13 +354,13 @@ export function findBestMatchSet(matchSets: Match[][], teams: Team[], players: P
 export function generateRound(players: Player[], roundNumber: number, tournament: Tournament): PairingResult {
   try {
     const playerCount = players.length;
-    const groupConfig = calculateGroups(playerCount, true);
+    const groupConfig = calculateGroups(playerCount);
     
     // Step 1: Assign byes
     const { byes, remainingPlayers } = assignByes(players, groupConfig.byes);
     
     // Step 2: Create groups
-    const groups = createGroups(remainingPlayers, groupConfig.groupsOf8, groupConfig.groupsOf12, tournament);
+    const groups = createGroups(remainingPlayers, groupConfig.groupsOf4, groupConfig.groupsOf8, groupConfig.groupsOf12, tournament);
     
     // Step 3: Generate matches for each group
     const allMatches: Match[] = [];

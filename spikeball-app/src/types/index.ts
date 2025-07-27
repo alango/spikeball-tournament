@@ -46,6 +46,7 @@ export interface Tournament {
   isCompleted: boolean;
   configuration: TournamentConfig;
   groupConfiguration: GroupConfiguration;
+  customGroupConfig?: CustomGroupConfiguration;
 }
 
 export interface TournamentConfig {
@@ -59,9 +60,17 @@ export interface GroupConfiguration {
   totalPlayers: number;
   byes: number;
   activePlayersPerRound: number;
+  groupsOf4: number;
   groupsOf8: number;
   groupsOf12: number;
   totalGroups: number;
+}
+
+export interface CustomGroupConfiguration {
+  useCustomGroups: boolean;
+  groupsOf4: number;
+  groupsOf8: number;
+  groupsOf12: number;
 }
 
 export interface PlayerStats {

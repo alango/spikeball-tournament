@@ -6,6 +6,7 @@ import type {
   Match,
   TournamentConfig,
   PlayerStats,
+  CustomGroupConfiguration,
 } from '../types';
 import { calculateGroups } from '../algorithms/groupCalculation';
 import { generateRound } from '../algorithms/pairingAlgorithm';
@@ -22,6 +23,7 @@ interface TournamentStore {
   }) => void;
   addPlayer: (player: Omit<Player, 'id'>) => void;
   removePlayer: (playerId: string) => void;
+  updateCustomGroupConfig: (config: CustomGroupConfiguration) => void;
   startTournament: () => void;
   generateRound: () => void;
   updateMatchScore: (
@@ -60,10 +62,12 @@ const useTournamentStore = create<TournamentStore>()(
             totalPlayers: 0,
             byes: 0,
             activePlayersPerRound: 0,
+            groupsOf4: 0,
             groupsOf8: 0,
             groupsOf12: 0,
             totalGroups: 0,
           },
+          customGroupConfig: undefined,
         };
         set({ currentTournament: newTournament });
       },
@@ -115,12 +119,29 @@ const useTournamentStore = create<TournamentStore>()(
         });
       },
 
+      updateCustomGroupConfig: (config) => {
+        const state = get();
+        if (!state.currentTournament || state.currentTournament.isStarted) {
+          return;
+        }
+
+        set({
+          currentTournament: {
+            ...state.currentTournament,
+            customGroupConfig: config,
+          },
+        });
+      },
+
       startTournament: () => {
         const state = get();
         if (!state.currentTournament) return;
 
         const playerCount = Object.keys(state.currentTournament.players).length;
-        const groupConfig = calculateGroups(playerCount, true);
+        const customConfig = state.currentTournament.customGroupConfig;
+        const groupConfig = customConfig?.useCustomGroups
+          ? calculateGroups(playerCount, true, customConfig.groupsOf4, customConfig.groupsOf8, customConfig.groupsOf12)
+          : calculateGroups(playerCount, false);
 
         set({
           currentTournament: {

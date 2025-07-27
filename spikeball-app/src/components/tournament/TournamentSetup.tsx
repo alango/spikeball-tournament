@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Input, Card } from '../ui';
 import useTournamentStore from '../../stores/tournamentStore';
 import type { TournamentConfig } from '../../types';
-import { calculateGroups } from '../../algorithms/groupCalculation';
+import { calculateGroups, validateCustomGroups } from '../../algorithms/groupCalculation';
 
 export function TournamentSetup() {
   const { createTournament, currentTournament } = useTournamentStore();
@@ -74,6 +74,7 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
     if (isNaN(byePointsNum) || byePointsNum < 0 || byePointsNum > 10) {
       newErrors.byePoints = 'Bye points must be a number between 0 and 10';
     }
+    
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -194,6 +195,7 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
           </p>
         </div>
 
+
         <div className="flex justify-end">
           <Button type="submit">
             Next: Add Players
@@ -205,10 +207,16 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
 }
 
 function PlayerRegistration() {
-  const { currentTournament, addPlayer, removePlayer, resetTournament } = useTournamentStore();
+  const { currentTournament, addPlayer, removePlayer, updateCustomGroupConfig, resetTournament } = useTournamentStore();
   const [playerForm, setPlayerForm] = useState({
     name: '',
     initialSkillRating: '',
+  });
+  const [groupForm, setGroupForm] = useState({
+    useCustomGroups: false,
+    customGroupsOf4: '0',
+    customGroupsOf8: '0',
+    customGroupsOf12: '0',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -269,7 +277,35 @@ function PlayerRegistration() {
     removePlayer(playerId);
   };
 
-  const canStartTournament = playerCount >= 8 && playerCount <= 30;
+  const handleGroupConfigChange = (updates: Partial<typeof groupForm>) => {
+    const newGroupForm = { ...groupForm, ...updates };
+    setGroupForm(newGroupForm);
+    
+    // Update the tournament store immediately
+    if (newGroupForm.useCustomGroups) {
+      updateCustomGroupConfig({
+        useCustomGroups: true,
+        groupsOf4: Number(newGroupForm.customGroupsOf4),
+        groupsOf8: Number(newGroupForm.customGroupsOf8),
+        groupsOf12: Number(newGroupForm.customGroupsOf12),
+      });
+    } else {
+      updateCustomGroupConfig({
+        useCustomGroups: false,
+        groupsOf4: 0,
+        groupsOf8: 0,
+        groupsOf12: 0,
+      });
+    }
+  };
+
+  const customConfig = currentTournament?.customGroupConfig;
+  const customValidation = customConfig?.useCustomGroups 
+    ? validateCustomGroups(playerCount, customConfig.groupsOf4, customConfig.groupsOf8, customConfig.groupsOf12)
+    : null;
+  
+  const canStartTournament = playerCount >= 8 && playerCount <= 30 && 
+    (!customValidation || customValidation.isValid);
 
   const handleResetTournament = () => {
     if (confirm('Are you sure you want to start over? This will delete the current tournament.')) {
@@ -352,13 +388,17 @@ function PlayerRegistration() {
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             {canStartTournament && (
-              <GroupConfigurationPreview playerCount={playerCount} />
+              <GroupConfigurationPreview 
+                playerCount={playerCount}
+              />
             )}
             
             <div className="flex items-center justify-between mt-4">
               <div>
                 <p className="text-sm text-gray-600">
-                  {canStartTournament 
+                  {customValidation && !customValidation.isValid
+                    ? 'Fix group configuration to start tournament'
+                    : playerCount >= 8 && playerCount <= 30
                     ? 'Ready to start tournament!' 
                     : `Need ${8 - playerCount} more players to start (minimum 8)`
                   }
@@ -368,6 +408,97 @@ function PlayerRegistration() {
                 disabled={!canStartTournament}
                 playerCount={playerCount}
               />
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {players.length >= 8 && (
+        <Card title="Group Configuration">
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={groupForm.useCustomGroups}
+                  onChange={(e) => handleGroupConfigChange({ useCustomGroups: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-900">
+                  Use custom group sizes (advanced)
+                </span>
+              </label>
+              
+              {!groupForm.useCustomGroups && (
+                <div className="mt-2 p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <strong>Default:</strong> Tournament will use 4-player groups only for optimal pairing
+                  </p>
+                </div>
+              )}
+              
+              {groupForm.useCustomGroups && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                  <p className="text-sm text-gray-700 font-medium">
+                    Configure custom group sizes (total must equal active players):
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        4-Player Groups
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={groupForm.customGroupsOf4}
+                        onChange={(e) => handleGroupConfigChange({ customGroupsOf4: e.target.value })}
+                        error={errors.customGroupsOf4}
+                        placeholder="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        8-Player Groups
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={groupForm.customGroupsOf8}
+                        onChange={(e) => handleGroupConfigChange({ customGroupsOf8: e.target.value })}
+                        error={errors.customGroupsOf8}
+                        placeholder="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        12-Player Groups
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={groupForm.customGroupsOf12}
+                        onChange={(e) => handleGroupConfigChange({ customGroupsOf12: e.target.value })}
+                        error={errors.customGroupsOf12}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 text-sm text-gray-600">
+                    Total active players will be: <strong>{Number(groupForm.customGroupsOf4) * 4 + Number(groupForm.customGroupsOf8) * 8 + Number(groupForm.customGroupsOf12) * 12}</strong>
+                    <br />
+                    <em>This must equal the number of active players per round ({customConfig ? customConfig.useCustomGroups ? 
+                      customConfig.groupsOf4 * 4 + customConfig.groupsOf8 * 8 + customConfig.groupsOf12 * 12 : 
+                      calculateGroups(playerCount, false).activePlayersPerRound : 'N/A'}).</em>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -406,11 +537,29 @@ interface GroupConfigurationPreviewProps {
 }
 
 function GroupConfigurationPreview({ playerCount }: GroupConfigurationPreviewProps) {
-  const groupConfig = calculateGroups(playerCount, true);
+  const { currentTournament } = useTournamentStore();
+  const customConfig = currentTournament?.customGroupConfig;
+  
+  const groupConfig = customConfig?.useCustomGroups 
+    ? calculateGroups(playerCount, true, customConfig.groupsOf4, customConfig.groupsOf8, customConfig.groupsOf12)
+    : calculateGroups(playerCount, false);
+    
+  // Validate custom groups if using them
+  const customValidation = customConfig?.useCustomGroups 
+    ? validateCustomGroups(playerCount, customConfig.groupsOf4, customConfig.groupsOf8, customConfig.groupsOf12)
+    : null;
   
   return (
     <div className="bg-blue-50 rounded-lg p-4 mb-4">
       <h4 className="font-medium text-blue-900 mb-2">Tournament Configuration</h4>
+      
+      {/* Show validation error if custom groups don't add up */}
+      {customValidation && !customValidation.isValid && (
+        <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-sm text-red-700">
+          <strong>⚠️ Configuration Error:</strong> {customValidation.error}
+        </div>
+      )}
+      
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
         <div>
           <span className="text-blue-700 font-medium">Total Players:</span>
@@ -424,16 +573,17 @@ function GroupConfigurationPreview({ playerCount }: GroupConfigurationPreviewPro
           <span className="text-blue-700 font-medium">Byes per Round:</span>
           <span className="block text-blue-900">{groupConfig.byes}</span>
         </div>
-        <div>
-          <span className="text-blue-700 font-medium">Total Groups:</span>
-          <span className="block text-blue-900">{groupConfig.totalGroups}</span>
-        </div>
       </div>
       
-      {(groupConfig.groupsOf8 > 0 || groupConfig.groupsOf12 > 0) && (
+      {(groupConfig.groupsOf4 > 0 || groupConfig.groupsOf8 > 0 || groupConfig.groupsOf12 > 0) && (
         <div className="mt-3 pt-3 border-t border-blue-200">
           <span className="text-blue-700 font-medium text-sm">Group Sizes:</span>
           <div className="flex space-x-4 mt-1">
+            {groupConfig.groupsOf4 > 0 && (
+              <span className="text-sm text-blue-900">
+                {groupConfig.groupsOf4} × 4-player groups
+              </span>
+            )}
             {groupConfig.groupsOf8 > 0 && (
               <span className="text-sm text-blue-900">
                 {groupConfig.groupsOf8} × 8-player groups

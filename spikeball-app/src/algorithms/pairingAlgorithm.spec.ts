@@ -48,6 +48,7 @@ function createTestTournament(players: Player[]): Tournament {
       totalPlayers: players.length,
       byes: 0,
       activePlayersPerRound: players.length,
+      groupsOf4: 0,
       groupsOf8: 0,
       groupsOf12: 0,
       totalGroups: 0,
@@ -100,7 +101,7 @@ describe('Pairing Algorithm', () => {
       ];
       
       const tournament = createTestTournament(players);
-      const groups = createGroups(players, 1, 0, tournament);
+      const groups = createGroups(players, 0, 1, 0, tournament);
       expect(groups).toHaveLength(1);
       expect(groups[0]).toHaveLength(8);
       
@@ -187,9 +188,9 @@ describe('Pairing Algorithm', () => {
       
       expect(result.success).toBe(true);
       expect(result.round.roundNumber).toBe(1);
-      expect(result.round.matches.length).toBe(2); // 8 players = 4 teams = 2 matches
+      expect(result.round.matches.length).toBe(2); // 8 players = 2 groups of 4 = 2 matches total
       expect(result.byes).toHaveLength(0); // No byes needed for 8 players
-      expect(result.groups).toHaveLength(1); // 1 group of 8
+      expect(result.groups).toHaveLength(2); // 2 groups of 4
     });
 
     it('should handle 9 players with byes', () => {
@@ -202,8 +203,8 @@ describe('Pairing Algorithm', () => {
       
       expect(result.success).toBe(true);
       expect(result.byes.length).toBe(1); // 9 % 4 = 1 bye
-      expect(result.round.matches.length).toBe(2); // 8 players → 1 group of 8 → 2 matches
-      expect(result.groups).toHaveLength(1); // 1 group of 8
+      expect(result.round.matches.length).toBe(2); // 8 players → 2 groups of 4 → 2 matches
+      expect(result.groups).toHaveLength(2); // 2 groups of 4
     });
 
     it('should handle various player counts', () => {
