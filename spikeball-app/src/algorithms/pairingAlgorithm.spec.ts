@@ -64,7 +64,7 @@ describe('Pairing Algorithm', () => {
         createTestPlayer('2', 'Bob'),
       ];
       
-      const result = assignByes(players, 0);
+      const result = assignByes(players, 0, 1);
       expect(result.byes).toHaveLength(0);
       expect(result.remainingPlayers).toHaveLength(2);
     });
@@ -77,13 +77,49 @@ describe('Pairing Algorithm', () => {
         createTestPlayer('4', 'David', 3, [1]),  // 1 previous bye
       ];
       
-      const result = assignByes(players, 2);
+      const result = assignByes(players, 2, 2);
       expect(result.byes).toHaveLength(2);
       expect(result.remainingPlayers).toHaveLength(2);
       
       // Should prioritize Bob and Charlie (0 byes) over Alice and David (1 bye each)
       const byedPlayers = result.byes.map(id => players.find(p => p.id === id)!);
       expect(byedPlayers.every(p => p.byeHistory.length <= 1)).toBe(true);
+    });
+
+    it('should prioritize players with older byes when bye counts are equal', () => {
+      const players = [
+        createTestPlayer('1', 'Alice', 9, [1]), // Had bye in round 1
+        createTestPlayer('2', 'Bob', 6, [3]),   // Had bye in round 3 (more recent)
+        createTestPlayer('3', 'Charlie', 6, [2]), // Had bye in round 2
+        createTestPlayer('4', 'David', 3, [1]),   // Had bye in round 1
+      ];
+      
+      const result = assignByes(players, 2, 4); // Assign 2 byes for round 4
+      expect(result.byes).toHaveLength(2);
+      expect(result.remainingPlayers).toHaveLength(2);
+      
+      // Should prioritize Alice and David (both had byes in round 1) over Bob (round 3) and Charlie (round 2)
+      const byedPlayers = result.byes.map(id => players.find(p => p.id === id)!);
+      const byedRounds = byedPlayers.map(p => Math.max(...p.byeHistory));
+      
+      // Both selected players should have had their last bye in round 1 (oldest)
+      expect(byedRounds.every(round => round === 1)).toBe(true);
+    });
+
+    it('should avoid consecutive byes when possible', () => {
+      const players = [
+        createTestPlayer('1', 'Alice', 9, [1, 2]), // Had byes in rounds 1, 2
+        createTestPlayer('2', 'Bob', 6, [3]),      // Had bye in round 3 (most recent)
+        createTestPlayer('3', 'Charlie', 6, [1]),  // Had bye in round 1 (oldest)
+        createTestPlayer('4', 'David', 3, [2]),    // Had bye in round 2
+      ];
+      
+      const result = assignByes(players, 1, 4); // Assign 1 bye for round 4
+      expect(result.byes).toHaveLength(1);
+      
+      // Should select Charlie (had bye in round 1, oldest) over Bob (had bye in round 3, most recent)
+      const byedPlayer = players.find(p => p.id === result.byes[0])!;
+      expect(byedPlayer.name).toBe('Charlie');
     });
   });
 

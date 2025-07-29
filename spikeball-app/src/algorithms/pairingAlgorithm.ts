@@ -23,18 +23,32 @@ export interface PairingResult {
   errors?: string[];
 }
 
-// Bye assignment algorithm - assign byes to players with fewest byes
-export function assignByes(players: Player[], byeCount: number): { byes: string[], remainingPlayers: Player[] } {
+// Bye assignment algorithm - assign byes to players with fewest byes and oldest bye history
+export function assignByes(players: Player[], byeCount: number, currentRound: number): { byes: string[], remainingPlayers: Player[] } {
   if (byeCount === 0) {
     return { byes: [], remainingPlayers: players };
   }
 
-  // Sort players by bye count (ascending), then randomly shuffle ties
+  // Future enhancement: Could use currentRound for minimum gap enforcement
+  // e.g., if (currentRound - aLastBye < MIN_GAP) { /* penalty */ }
+  void currentRound; // Suppress TypeScript unused variable warning
+
+  // Sort players by bye count (ascending), then by recency of last bye (ascending), then randomly
   const playersByByes = [...players].sort((a, b) => {
+    // Primary: Total bye count (ascending)
     if (a.byeHistory.length !== b.byeHistory.length) {
       return a.byeHistory.length - b.byeHistory.length;
     }
-    // Random tiebreaker
+    
+    // Secondary: Most recent bye round (ascending - earlier byes prioritized)
+    const aLastBye = a.byeHistory.length > 0 ? Math.max(...a.byeHistory) : -1;
+    const bLastBye = b.byeHistory.length > 0 ? Math.max(...b.byeHistory) : -1;
+    
+    if (aLastBye !== bLastBye) {
+      return aLastBye - bLastBye;
+    }
+    
+    // Tertiary: Random tiebreaker
     return Math.random() - 0.5;
   });
 
@@ -357,7 +371,7 @@ export function generateRound(players: Player[], roundNumber: number, tournament
     const groupConfig = calculateGroups(playerCount);
     
     // Step 1: Assign byes
-    const { byes, remainingPlayers } = assignByes(players, groupConfig.byes);
+    const { byes, remainingPlayers } = assignByes(players, groupConfig.byes, roundNumber);
     
     // Step 2: Create groups
     const groups = createGroups(remainingPlayers, groupConfig.groupsOf4, groupConfig.groupsOf8, groupConfig.groupsOf12, tournament);
