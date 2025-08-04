@@ -33,8 +33,12 @@ export function assignByes(players: Player[], byeCount: number, currentRound: nu
   // e.g., if (currentRound - aLastBye < MIN_GAP) { /* penalty */ }
   void currentRound; // Suppress TypeScript unused variable warning
 
-  // Sort players by bye count (ascending), then by recency of last bye (ascending), then randomly
-  const playersByByes = [...players].sort((a, b) => {
+  // Filter to only active players for bye assignment
+  const activePlayers = players.filter(p => p.isActive);
+  const inactivePlayers = players.filter(p => !p.isActive);
+
+  // Sort active players by bye count (ascending), then by recency of last bye (ascending), then randomly
+  const playersByByes = [...activePlayers].sort((a, b) => {
     // Primary: Total bye count (ascending)
     if (a.byeHistory.length !== b.byeHistory.length) {
       return a.byeHistory.length - b.byeHistory.length;
@@ -53,7 +57,10 @@ export function assignByes(players: Player[], byeCount: number, currentRound: nu
   });
 
   const byes = playersByByes.slice(0, byeCount).map(p => p.id);
-  const remainingPlayers = playersByByes.slice(byeCount);
+  const remainingActivePlayers = playersByByes.slice(byeCount);
+  
+  // Combine remaining active players with all inactive players
+  const remainingPlayers = [...remainingActivePlayers, ...inactivePlayers];
 
   return { byes, remainingPlayers };
 }

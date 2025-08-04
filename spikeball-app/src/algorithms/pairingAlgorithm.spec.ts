@@ -273,10 +273,9 @@ describe('Pairing Algorithm', () => {
       
       const result = assignByes(players, 1, 1);
       expect(result.byes).toHaveLength(1);
-      // The assignByes function should return all players except those assigned byes
-      // Since Bob is inactive, the algorithm should still return him in remainingPlayers
-      // but the generateRound function will filter him out later
-      expect(result.remainingPlayers).toHaveLength(4); // All players except the 1 bye
+      
+      // Should return 4 remaining players: 3 active players not assigned byes + 1 inactive player
+      expect(result.remainingPlayers).toHaveLength(4);
       
       // Verify inactive player is not assigned a bye
       expect(result.byes).not.toContain('2'); // Bob should not get a bye
@@ -285,6 +284,11 @@ describe('Pairing Algorithm', () => {
       const byePlayerId = result.byes[0];
       const byePlayer = players.find(p => p.id === byePlayerId);
       expect(byePlayer?.isActive).toBe(true);
+      
+      // Verify Bob (inactive) is in the remaining players
+      const bobInRemaining = result.remainingPlayers.find(p => p.id === '2');
+      expect(bobInRemaining).toBeDefined();
+      expect(bobInRemaining?.isActive).toBe(false);
     });
 
     it('should handle 9 players with byes', () => {
