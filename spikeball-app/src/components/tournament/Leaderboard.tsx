@@ -331,9 +331,15 @@ function PlayerTableRow({
 
       {/* Points */}
       <td className="py-3 px-2 text-right">
-        <div className="text-lg font-semibold text-gray-900">
+        <div 
+          className="text-lg font-semibold text-gray-900"
+          title={currentTournament.configuration.bonusPointsEnabled 
+            ? `Exact score: ${player.currentScore.toFixed(2)}` 
+            : undefined
+          }
+        >
           {currentTournament.configuration.bonusPointsEnabled 
-            ? player.currentScore.toFixed(2) 
+            ? player.currentScore.toFixed(1) 
             : player.currentScore.toString()
           }
         </div>
