@@ -60,10 +60,10 @@ export function validatePlayerCount(playerCount: number): {
     };
   }
   
-  if (playerCount > 30) {
+  if (playerCount > 40) {
     return { 
       isValid: false, 
-      error: `Maximum 30 players allowed (currently have ${playerCount})` 
+      error: `Maximum 40 players allowed (currently have ${playerCount})` 
     };
   }
 

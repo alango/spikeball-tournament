@@ -25,7 +25,7 @@ This is a Spikeball Swiss Individual Tournament Generator - a web application fo
 Key characteristics:
 - Target audience: Tournament organizers (small audience, simplicity over features)
 - Swiss tournament system with individual player tracking
-- Supports 8-30 players with automated fair pairing generation
+- Supports 8-40 players with automated fair pairing generation
 - Single-screen layout with leaderboard, previous rounds, and current round columns
 
 ## Core Algorithm
@@ -43,7 +43,7 @@ The grouping algorithm calculates optimal group sizes using the formula `2A + 3B
 
 - Player names must be unique within tournament
 - Cannot add players after first round begins
-- Cannot start tournament until supported number of players (8-30) are added
+- Cannot start tournament until supported number of players (8-40) are added
 - All matches in a round must be completed before generating next round
 - Scoring: Win/Loss (3 points for win, 0 for loss) with optional fractional bonus points based on percentage of points won (e.g., losing 15-21 gives 15/(15+21) = 0.42 bonus points)
 - Group sizes are calculated once at tournament start and remain fixed throughout

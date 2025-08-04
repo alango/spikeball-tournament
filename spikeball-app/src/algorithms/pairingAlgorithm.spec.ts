@@ -39,7 +39,7 @@ function createTestTournament(players: Player[]): Tournament {
     isStarted: true,
     isCompleted: false,
     configuration: {
-      maxPlayers: 30,
+      maxPlayers: 40,
       scoringSystem: 'win-loss',
       bonusPointsEnabled: false,
       byePoints: 3,

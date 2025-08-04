@@ -1,4 +1,4 @@
-This is the algorithm for taking a leaderboard of 8-30 players and producing the pairings for the next round.
+This is the algorithm for taking a leaderboard of 8-40 players and producing the pairings for the next round.
 
 ## Grouping ##
 Separate players into groups. Groups can contain 4, 8, or 12 players.

@@ -88,7 +88,7 @@ function TournamentForm({ onComplete, onCreateTournament }: TournamentFormProps)
     }
 
     const tournamentConfig: TournamentConfig = {
-      maxPlayers: 30,
+      maxPlayers: 40,
       scoringSystem: formData.bonusPointsEnabled ? 'win-loss-bonus' : 'win-loss',
       bonusPointsEnabled: formData.bonusPointsEnabled,
       byePoints: Number(formData.byePoints),
@@ -252,8 +252,8 @@ function PlayerRegistration() {
       return;
     }
 
-    if (playerCount >= 30) {
-      setErrors({ name: 'Maximum 30 players allowed' });
+    if (playerCount >= 40) {
+      setErrors({ name: 'Maximum 40 players allowed' });
       return;
     }
 
@@ -304,7 +304,7 @@ function PlayerRegistration() {
     ? validateCustomGroups(playerCount, customConfig.groupsOf4, customConfig.groupsOf8, customConfig.groupsOf12)
     : null;
   
-  const canStartTournament = playerCount >= 8 && playerCount <= 30 && 
+  const canStartTournament = playerCount >= 8 && playerCount <= 40 && 
     (!customValidation || customValidation.isValid);
 
   const handleResetTournament = () => {

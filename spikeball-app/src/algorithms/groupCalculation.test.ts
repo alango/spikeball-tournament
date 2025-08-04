@@ -58,8 +58,19 @@ describe('Group Calculation Algorithm', () => {
       expect(result.totalGroups).toBe(7);
     });
 
+    it('should calculate correct groups for 40 players', () => {
+      const result = calculateGroups(40, false); // default algorithm uses 4-player groups
+      expect(result.totalPlayers).toBe(40);
+      expect(result.byes).toBe(0); // 40 % 4 = 0
+      expect(result.activePlayersPerRound).toBe(40);
+      expect(result.groupsOf4).toBe(10); // 40 active players = 10 groups of 4
+      expect(result.groupsOf8).toBe(0);
+      expect(result.groupsOf12).toBe(0);
+      expect(result.totalGroups).toBe(10);
+    });
+
     it('should preserve total players in groups plus byes', () => {
-      const testCases = [8, 9, 10, 11, 12, 16, 20, 24, 30];
+      const testCases = [8, 9, 10, 11, 12, 16, 20, 24, 30, 40];
       
       testCases.forEach(playerCount => {
         const result = calculateGroups(playerCount, false); // test default 4-player algorithm
@@ -101,7 +112,7 @@ describe('Group Calculation Algorithm', () => {
     it('should validate correct player counts', () => {
       expect(validatePlayerCount(8).isValid).toBe(true);
       expect(validatePlayerCount(16).isValid).toBe(true);
-      expect(validatePlayerCount(30).isValid).toBe(true);
+      expect(validatePlayerCount(40).isValid).toBe(true);
     });
 
     it('should reject too few players', () => {
@@ -111,9 +122,9 @@ describe('Group Calculation Algorithm', () => {
     });
 
     it('should reject too many players', () => {
-      const result = validatePlayerCount(31);
+      const result = validatePlayerCount(41);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Maximum 30 players');
+      expect(result.error).toContain('Maximum 40 players');
     });
   });
 
