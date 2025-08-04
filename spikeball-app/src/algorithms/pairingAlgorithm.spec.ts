@@ -21,6 +21,7 @@ function createTestPlayer(id: string, name: string, score: number = 0, byes: num
     previousOpponents: opponents,
     byeHistory: byes,
     isActive: true,
+    initialSkillRating: undefined,
   };
 }
 
@@ -146,6 +147,90 @@ describe('Pairing Algorithm', () => {
       for (let i = 1; i < groups[0].length; i++) {
         expect(groups[0][i-1].currentScore).toBeGreaterThanOrEqual(groups[0][i].currentScore);
       }
+    });
+
+    it('should use skill-based seeding for first round', () => {
+      // Create players with specific skill ratings and names that would normally sort alphabetically
+      const players = [
+        { ...createTestPlayer('1', 'Alice', 0), initialSkillRating: 1 }, // Low skill
+        { ...createTestPlayer('2', 'Bob', 0), initialSkillRating: 5 },   // High skill
+        { ...createTestPlayer('3', 'Charlie', 0), initialSkillRating: 3 }, // Mid skill
+        { ...createTestPlayer('4', 'David', 0), initialSkillRating: 5 },   // High skill
+        { ...createTestPlayer('5', 'Eve', 0), initialSkillRating: 2 },     // Low-mid skill
+        { ...createTestPlayer('6', 'Frank', 0), initialSkillRating: 4 },   // High-mid skill
+        { ...createTestPlayer('7', 'Grace', 0) }, // No skill rating
+        { ...createTestPlayer('8', 'Henry', 0), initialSkillRating: 3 },   // Mid skill
+      ];
+      
+      const tournament = createTestTournament(players);
+      const groups = createGroups(players, 0, 2, 0, tournament);
+      
+      expect(groups).toHaveLength(2);
+      
+      // Flatten groups to see the ordering
+      const allPlayersInOrder = groups.flat();
+      
+      // High skill players (5s) should generally appear first
+      const highSkillPositions = allPlayersInOrder
+        .map((p, index) => ({ player: p, position: index }))
+        .filter(({ player }) => player.initialSkillRating === 5)
+        .map(({ position }) => position);
+      
+      // Low skill players (1s) should generally appear last
+      const lowSkillPositions = allPlayersInOrder
+        .map((p, index) => ({ player: p, position: index }))
+        .filter(({ player }) => player.initialSkillRating === 1)
+        .map(({ position }) => position);
+      
+      // High skill players should appear before low skill players
+      if (highSkillPositions.length > 0 && lowSkillPositions.length > 0) {
+        expect(Math.max(...highSkillPositions)).toBeLessThan(Math.min(...lowSkillPositions));
+      }
+      
+      // Verify this is different from pure alphabetical sorting
+      const alphabeticalOrder = [...players].sort((a, b) => a.name.localeCompare(b.name));
+      expect(allPlayersInOrder.map(p => p.name)).not.toEqual(alphabeticalOrder.map(p => p.name));
+    });
+
+    it('should handle players without skill ratings in first round', () => {
+      const players = [
+        { ...createTestPlayer('1', 'Alice', 0), initialSkillRating: 5 },
+        { ...createTestPlayer('2', 'Bob', 0) }, // No skill rating
+        { ...createTestPlayer('3', 'Charlie', 0), initialSkillRating: 1 },
+        { ...createTestPlayer('4', 'David', 0) }, // No skill rating
+      ];
+      
+      const tournament = createTestTournament(players);
+      const groups = createGroups(players, 1, 0, 0, tournament);
+      
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toHaveLength(4);
+      
+      // Should not throw an error and should include all players
+      const allPlayersInGroups = groups.flat();
+      expect(allPlayersInGroups).toHaveLength(4);
+      expect(allPlayersInGroups.map(p => p.id).sort()).toEqual(['1', '2', '3', '4']);
+    });
+
+    it('should fall back to score-based sorting for subsequent rounds', () => {
+      const players = [
+        { ...createTestPlayer('1', 'Alice', 9), initialSkillRating: 1, gamesPlayed: 3 }, // Low skill but high score
+        { ...createTestPlayer('2', 'Bob', 3), initialSkillRating: 5, gamesPlayed: 1 },   // High skill but low score
+        { ...createTestPlayer('3', 'Charlie', 6), initialSkillRating: 3, gamesPlayed: 2 },
+        { ...createTestPlayer('4', 'David', 0), initialSkillRating: 5, gamesPlayed: 0 },
+      ];
+      
+      const tournament = createTestTournament(players);
+      const groups = createGroups(players, 1, 0, 0, tournament);
+      
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toHaveLength(4);
+      
+      // Should be ordered by current score (not skill rating) since not first round
+      const groupPlayers = groups[0];
+      expect(groupPlayers[0].currentScore).toBeGreaterThanOrEqual(groupPlayers[1].currentScore);
+      expect(groupPlayers[1].currentScore).toBeGreaterThanOrEqual(groupPlayers[2].currentScore);
+      expect(groupPlayers[2].currentScore).toBeGreaterThanOrEqual(groupPlayers[3].currentScore);
     });
   });
 

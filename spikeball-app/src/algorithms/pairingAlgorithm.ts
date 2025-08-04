@@ -65,6 +65,43 @@ export function assignByes(players: Player[], byeCount: number, currentRound: nu
   return { byes, remainingPlayers };
 }
 
+// Helper function to sort players for first round using skill-based seeding
+function sortPlayersForFirstRound(players: Player[]): Player[] {
+  // Separate players with and without skill ratings
+  const rated = players.filter(p => p.initialSkillRating != null);
+  const unrated = players.filter(p => p.initialSkillRating == null);
+  
+  // Group rated players by skill level and randomize within groups
+  const skillGroups: { [skill: number]: Player[] } = {};
+  rated.forEach(player => {
+    const skill = player.initialSkillRating!;
+    if (!skillGroups[skill]) skillGroups[skill] = [];
+    skillGroups[skill].push(player);
+  });
+  
+  // Randomize within each skill group and combine (5s first, then 4s, etc.)
+  const sortedRated: Player[] = [];
+  for (let skill = 5; skill >= 1; skill--) {
+    if (skillGroups[skill]) {
+      const shuffled = [...skillGroups[skill]].sort(() => Math.random() - 0.5);
+      sortedRated.push(...shuffled);
+    }
+  }
+  
+  // Insert unrated players at skill level 3 equivalent position
+  // (find where skill 3s end and skill 2s begin)
+  let insertPoint = sortedRated.findIndex(p => (p.initialSkillRating ?? 3) < 3);
+  if (insertPoint === -1) insertPoint = sortedRated.length;
+  
+  const shuffledUnrated = [...unrated].sort(() => Math.random() - 0.5);
+  
+  return [
+    ...sortedRated.slice(0, insertPoint),
+    ...shuffledUnrated,
+    ...sortedRated.slice(insertPoint)
+  ];
+}
+
 // Helper function to calculate strength of schedule for a player
 function calculateStrengthOfSchedule(player: Player, tournament: Tournament): number {
   const completedRounds = tournament.rounds.filter(round => round.isCompleted);
@@ -114,20 +151,30 @@ function calculateStrengthOfSchedule(player: Player, tournament: Tournament): nu
 
 // Create groups from remaining players based on current ranking
 export function createGroups(players: Player[], groupsOf4: number, groupsOf8: number, groupsOf12: number, tournament: Tournament): Player[][] {
-  // Sort players by current ranking (total score descending, then strength of schedule descending)
-  const sortedPlayers = [...players].sort((a, b) => {
-    if (a.currentScore !== b.currentScore) {
-      return b.currentScore - a.currentScore;
-    }
-    // Secondary sort: Strength of schedule (descending)
-    const aStrengthOfSchedule = calculateStrengthOfSchedule(a, tournament);
-    const bStrengthOfSchedule = calculateStrengthOfSchedule(b, tournament);
-    if (aStrengthOfSchedule !== bStrengthOfSchedule) {
-      return bStrengthOfSchedule - aStrengthOfSchedule;
-    }
-    // Final sort: Alphabetical by name
-    return a.name.localeCompare(b.name);
-  });
+  // Check if this is the first round (all players have zero scores and no game history)
+  const isFirstRound = players.every(p => p.currentScore === 0 && p.gamesPlayed === 0);
+  
+  let sortedPlayers: Player[];
+  
+  if (isFirstRound) {
+    // Use skill-based seeding for first round
+    sortedPlayers = sortPlayersForFirstRound(players);
+  } else {
+    // Sort players by current ranking (total score descending, then strength of schedule descending)
+    sortedPlayers = [...players].sort((a, b) => {
+      if (a.currentScore !== b.currentScore) {
+        return b.currentScore - a.currentScore;
+      }
+      // Secondary sort: Strength of schedule (descending)
+      const aStrengthOfSchedule = calculateStrengthOfSchedule(a, tournament);
+      const bStrengthOfSchedule = calculateStrengthOfSchedule(b, tournament);
+      if (aStrengthOfSchedule !== bStrengthOfSchedule) {
+        return bStrengthOfSchedule - aStrengthOfSchedule;
+      }
+      // Final sort: Alphabetical by name
+      return a.name.localeCompare(b.name);
+    });
+  }
 
   const groups: Player[][] = [];
   let playerIndex = 0;
