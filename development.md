@@ -36,7 +36,7 @@ This document outlines the incremental development phases for the Spikeball Tour
 - [x] Implement player registration form
 - [x] Add player list display with edit/delete functionality
 - [x] Implement player name uniqueness validation
-- [x] Add tournament configuration validation (8-30 players)
+- [x] Add tournament configuration validation (8-40 players)
 - [x] Create group calculation algorithm implementation
 - [x] Display group configuration preview
 - [x] Add "Start Tournament" functionality
@@ -50,7 +50,7 @@ This document outlines the incremental development phases for the Spikeball Tour
 - Group calculation algorithm implementing the exact specification from `pairing_algorithm.md`
 - Real-time group configuration preview showing byes, group sizes, and total groups
 - Start Tournament button with validation and automatic group configuration calculation
-- All validation rules enforced: 8-30 players, unique names, proper skill ratings
+- All validation rules enforced: 8-40 players, unique names, proper skill ratings
 - Tournament state properly managed in Zustand store with localStorage persistence
 
 ## Phase 3: Core Pairing Algorithm ✅ COMPLETED
@@ -64,7 +64,7 @@ This document outlines the incremental development phases for the Spikeball Tour
 - [x] Create match generation algorithm (minimize repeat opponents)
 - [x] Add comprehensive unit tests for pairing algorithm
 - [x] Create algorithm visualization/debugging tools
-- [x] Test algorithm with various player counts (8, 12, 16, 20, 24, 30)
+- [x] Test algorithm with various player counts (8, 12, 16, 20, 24, 40)
 - [x] Verify algorithm produces valid outputs
 - [x] Performance test with maximum player count
 
@@ -76,9 +76,9 @@ This document outlines the incremental development phases for the Spikeball Tour
 - Tie-breaking for team selection uses team score differences (max - min)
 - Match generation explores all possible match combinations and minimizes repeat opponents
 - Tie-breaking for match selection uses total score differences between opponents
-- Comprehensive test suite covers all algorithms with various player counts (8-30)
+- Comprehensive test suite covers all algorithms with various player counts (8-40)
 - Algorithm debugger provides detailed analysis of round generation process
-- Performance testing shows algorithm handles maximum player count (30) efficiently
+- Performance testing shows algorithm handles maximum player count (40) efficiently
 - Integrated into tournament store with proper error handling and state management
 
 ## Phase 4: Basic Tournament Dashboard ✅ **COMPLETED**

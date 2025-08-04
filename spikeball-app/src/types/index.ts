@@ -9,6 +9,8 @@ export interface Player {
   previousOpponents: string[]; // Player IDs in chronological order
   byeHistory: number[]; // Round numbers where player had bye
   initialSkillRating?: number; // 1-5 scale for initial seeding
+  isActive: boolean; // Whether player participates in future rounds
+  removedInRound?: number; // Round number when marked inactive (for tracking)
 }
 
 export interface Team {

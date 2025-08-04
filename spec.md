@@ -27,7 +27,7 @@ This website is only intended for use by tournament organisers to create and man
 #### **2.1.1 Tournament Creation**
 **Functionality**: Create new tournament with configuration options
 - **Tournament Name**: Text field (max 100 characters)
-- **Player Limit**: Supports between 8 and 30 players
+- **Player Limit**: Supports between 8 and 40 players
 - **Scoring System**: 
   - Win/Loss (3 points for win, 0 for loss)
   - Optional bonus point (fractional point based on percentage of points won that match, e.g., losing 15-21 gives 15/(15+21) = 0.42 bonus points)

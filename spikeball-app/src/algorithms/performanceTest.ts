@@ -14,6 +14,7 @@ function createTestPlayers(count: number): Player[] {
     previousOpponents: [],
     byeHistory: Math.random() > 0.7 ? [1] : [], // 30% chance of having a bye
     initialSkillRating: Math.floor(Math.random() * 5) + 1,
+    isActive: true,
   }));
 }
 

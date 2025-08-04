@@ -267,6 +267,7 @@ function PlayerRegistration() {
       previousTeammates: [],
       previousOpponents: [],
       byeHistory: [],
+      isActive: true,
     });
 
     setPlayerForm({ name: '', initialSkillRating: '' });
@@ -353,9 +354,9 @@ function PlayerRegistration() {
 
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">
-              Players: {playerCount}/30 (minimum 8 to start)
+              Players: {playerCount}/40 (minimum 8 to start)
             </span>
-            <Button type="submit" disabled={playerCount >= 30}>
+            <Button type="submit" disabled={playerCount >= 40}>
               Add Player
             </Button>
           </div>

@@ -24,6 +24,8 @@ interface TournamentStore {
   addPlayer: (player: Omit<Player, 'id'>) => void;
   removePlayer: (playerId: string) => void;
   updateCustomGroupConfig: (config: CustomGroupConfiguration) => void;
+  deactivatePlayer: (playerId: string) => void;
+  reactivatePlayer: (playerId: string) => void;
   startTournament: () => void;
   generateRound: () => void;
   updateMatchScore: (
@@ -88,6 +90,7 @@ const useTournamentStore = create<TournamentStore>()(
           previousTeammates: [],
           previousOpponents: [],
           byeHistory: [],
+          isActive: true,
         };
 
         set({
@@ -129,6 +132,50 @@ const useTournamentStore = create<TournamentStore>()(
           currentTournament: {
             ...state.currentTournament,
             customGroupConfig: config,
+          },
+        });
+      },
+
+      deactivatePlayer: (playerId) => {
+        const state = get();
+        if (!state.currentTournament) return;
+
+        const player = state.currentTournament.players[playerId];
+        if (!player) return;
+
+        const updatedPlayers = { ...state.currentTournament.players };
+        updatedPlayers[playerId] = {
+          ...player,
+          isActive: false,
+          removedInRound: state.currentTournament.currentRound,
+        };
+
+        set({
+          currentTournament: {
+            ...state.currentTournament,
+            players: updatedPlayers,
+          },
+        });
+      },
+
+      reactivatePlayer: (playerId) => {
+        const state = get();
+        if (!state.currentTournament) return;
+
+        const player = state.currentTournament.players[playerId];
+        if (!player) return;
+
+        const updatedPlayers = { ...state.currentTournament.players };
+        updatedPlayers[playerId] = {
+          ...player,
+          isActive: true,
+          removedInRound: undefined,
+        };
+
+        set({
+          currentTournament: {
+            ...state.currentTournament,
+            players: updatedPlayers,
           },
         });
       },
@@ -314,7 +361,7 @@ const useTournamentStore = create<TournamentStore>()(
           const team1Players = parseTeamId(match.team1Id);
           const team2Players = parseTeamId(match.team2Id);
 
-          // Update team 1 players
+          // Update team 1 players (award points regardless of current active status since they're in the match)
           [team1Players.player1Id, team1Players.player2Id].forEach(playerId => {
             if (playerId && updatedPlayers[playerId]) {
               updatedPlayers[playerId] = {
@@ -329,7 +376,7 @@ const useTournamentStore = create<TournamentStore>()(
             }
           });
 
-          // Update team 2 players
+          // Update team 2 players (award points regardless of current active status since they're in the match)
           [team2Players.player1Id, team2Players.player2Id].forEach(playerId => {
             if (playerId && updatedPlayers[playerId]) {
               updatedPlayers[playerId] = {
@@ -345,13 +392,16 @@ const useTournamentStore = create<TournamentStore>()(
           });
         });
 
-        // Update player bye histories for this completed round and award bye points
+        // Update player bye histories for this completed round and award bye points (only to active players)
         currentRound.byes.forEach(playerId => {
           if (updatedPlayers[playerId]) {
             updatedPlayers[playerId] = {
               ...updatedPlayers[playerId],
               byeHistory: [...updatedPlayers[playerId].byeHistory, currentRound.roundNumber],
-              currentScore: updatedPlayers[playerId].currentScore + state.currentTournament!.configuration.byePoints
+              // Only award bye points to active players
+              currentScore: updatedPlayers[playerId].isActive 
+                ? updatedPlayers[playerId].currentScore + state.currentTournament!.configuration.byePoints
+                : updatedPlayers[playerId].currentScore
             };
           }
         });
@@ -483,16 +533,24 @@ const useTournamentStore = create<TournamentStore>()(
         currentTournament: state.currentTournament || undefined 
       }),
       migrate: (persistedState: unknown) => {
-        // Add byePoints field for existing tournaments (defaults to 3)
         const state = persistedState as { currentTournament?: Tournament };
-        if (state.currentTournament && 
-            state.currentTournament.configuration &&
-            !('byePoints' in state.currentTournament.configuration)) {
-          (state.currentTournament.configuration as TournamentConfig).byePoints = 3;
+        if (state.currentTournament) {
+          // Add byePoints field for existing tournaments (defaults to 3)
+          if (state.currentTournament.configuration &&
+              !('byePoints' in state.currentTournament.configuration)) {
+            (state.currentTournament.configuration as TournamentConfig).byePoints = 3;
+          }
+          
+          // Add isActive field for existing players (defaults to true)
+          Object.values(state.currentTournament.players).forEach(player => {
+            if (!('isActive' in player)) {
+              (player as Player).isActive = true;
+            }
+          });
         }
         return state;
       },
-      version: 1,
+      version: 2,
     }
   )
 );

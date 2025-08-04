@@ -39,8 +39,14 @@ export function TournamentDashboard() {
             </div>
             <div className="flex items-center space-x-1">
               <span className="text-gray-500">Players</span>
-              <span className="font-semibold text-gray-900">{Object.keys(currentTournament.players).length}</span>
+              <span className="font-semibold text-gray-900">{Object.values(currentTournament.players).filter(p => p.isActive).length}</span>
             </div>
+            {Object.values(currentTournament.players).filter(p => !p.isActive).length > 0 && (
+              <div className="flex items-center space-x-1">
+                <span className="text-gray-500">Inactive</span>
+                <span className="font-semibold text-red-600">{Object.values(currentTournament.players).filter(p => !p.isActive).length}</span>
+              </div>
+            )}
             <div className="flex items-center space-x-1">
               <span className="text-gray-500">Completed</span>
               <span className="font-semibold text-gray-900">{currentTournament.rounds.filter(round => round.isCompleted).length}</span>

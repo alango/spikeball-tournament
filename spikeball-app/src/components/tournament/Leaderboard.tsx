@@ -4,7 +4,7 @@ import useTournamentStore from '../../stores/tournamentStore';
 import type { Player, Tournament } from '../../types';
 
 export function Leaderboard() {
-  const { currentTournament } = useTournamentStore();
+  const { currentTournament, deactivatePlayer, reactivatePlayer } = useTournamentStore();
   const [showDetailedStats, setShowDetailedStats] = useState(false);
 
   // Calculate strength of schedule for a player
@@ -213,6 +213,8 @@ export function Leaderboard() {
                   teammates={getPlayerTeammates(player)}
                   opponents={getPlayerOpponents(player)}
                   currentTournament={currentTournament}
+                  onDeactivatePlayer={deactivatePlayer}
+                  onReactivatePlayer={reactivatePlayer}
                 />
               ))}
             </tbody>
@@ -232,6 +234,8 @@ interface PlayerTableRowProps {
   teammates: string[];
   opponents: string[];
   currentTournament: Tournament;
+  onDeactivatePlayer: (playerId: string) => void;
+  onReactivatePlayer: (playerId: string) => void;
 }
 
 function PlayerTableRow({ 
@@ -242,8 +246,11 @@ function PlayerTableRow({
   strengthOfSchedule,
   teammates,
   opponents,
-  currentTournament 
+  currentTournament,
+  onDeactivatePlayer,
+  onReactivatePlayer
 }: PlayerTableRowProps) {
+  const [showDropdown, setShowDropdown] = useState(false);
   const getRankBadge = (rank: number) => {
     switch (rank) {
       case 1: return '🥇';
@@ -255,7 +262,11 @@ function PlayerTableRow({
 
   return (
     <tr className={`border-b border-gray-100 ${
-      isTopThree ? 'bg-gradient-to-r from-yellow-50 to-orange-50' : 'hover:bg-gray-50'
+      !player.isActive 
+        ? 'opacity-50 bg-gray-50' 
+        : isTopThree 
+          ? 'bg-gradient-to-r from-yellow-50 to-orange-50' 
+          : 'hover:bg-gray-50'
     }`}>
       {/* Rank */}
       <td className="py-3 px-1">
@@ -275,8 +286,46 @@ function PlayerTableRow({
 
       {/* Player Name */}
       <td className="py-3 px-2">
-        <div className="font-medium text-gray-900">
-          {player.name}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="font-medium text-gray-900">
+              {player.name}
+            </span>
+            {!player.isActive && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                INACTIVE
+              </span>
+            )}
+          </div>
+          {currentTournament.isStarted && (
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  <button
+                    onClick={() => {
+                      if (player.isActive) {
+                        onDeactivatePlayer(player.id);
+                      } else {
+                        onReactivatePlayer(player.id);
+                      }
+                      setShowDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    {player.isActive ? 'Mark inactive' : 'Mark active'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </td>
 

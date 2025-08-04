@@ -367,11 +367,13 @@ export function findBestMatchSet(matchSets: Match[][], teams: Team[], players: P
 // Main pairing algorithm - generate a complete round
 export function generateRound(players: Player[], roundNumber: number, tournament: Tournament): PairingResult {
   try {
-    const playerCount = players.length;
+    // Filter to only active players for round generation
+    const activePlayers = players.filter(player => player.isActive);
+    const playerCount = activePlayers.length;
     const groupConfig = calculateGroups(playerCount);
     
-    // Step 1: Assign byes
-    const { byes, remainingPlayers } = assignByes(players, groupConfig.byes, roundNumber);
+    // Step 1: Assign byes (only to active players)
+    const { byes, remainingPlayers } = assignByes(activePlayers, groupConfig.byes, roundNumber);
     
     // Step 2: Create groups
     const groups = createGroups(remainingPlayers, groupConfig.groupsOf4, groupConfig.groupsOf8, groupConfig.groupsOf12, tournament);
